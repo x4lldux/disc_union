@@ -5,7 +5,7 @@ Discriminated unions for Elixir
 ## TODO
 
  * [ ] add tests
- * [ ] agree on naming convention
+ * [x] agree on naming convention
  * [ ] split up code into seperate files
  * [ ] refactor functions
  * [ ] `case` macro should warnin if not all cases are exhausted

@@ -19,17 +19,17 @@ defmodule MissingUnionCaseError do
     inspect c
   end
   defp format_case(c) when is_tuple(c) do
-    [label | args] = c
+    [tag | args] = c
     |> Tuple.to_list
 
     args = args |> Enum.join(" * ")
-    "#{inspect c} in #{args}"
+    "#{inspect tag} in #{args}"
   end
   def message(exception) do
     cases = exception.cases
     |> Enum.map(&format_case/1)
     |> Enum.join(", ")
-    "not all defined union cases are used,  should be all of: #{inspect(exception.cases)}"
+    "not all defined union cases are used, should be all of: #{inspect(exception.cases)}"
   end
 end
 
@@ -43,8 +43,8 @@ defmodule DiscUnion do
     # IO.inspect Macro.to_string expr
 
     case is_cases_valid cases do
-      {:error, :not_atoms} -> raise ArgumentError, "union case labels must be an atom"
-      {:error, :not_unique} -> raise ArgumentError, "union case labels need to be unique"
+      {:error, :not_atoms} -> raise ArgumentError, "union case tag must be an atom"
+      {:error, :not_unique} -> raise ArgumentError, "union case tag must be unique"
       :ok -> build_union cases
     end
   end
@@ -329,11 +329,11 @@ defmodule DiscUnion do
 end
 
 
-defmodule Asd do
-  require DiscUnion
+# defmodule Asd do
+#   require DiscUnion
 
-  DiscUnion.defunion :aasd | :zxc in integer()*String.t | :qwe | :x
-end
+#   DiscUnion.defunion :aasd | :zxc in integer()*String.t | :qwe | :x
+# end
 
 defmodule Maybe do
   require DiscUnion
@@ -345,7 +345,6 @@ defmodule Maybe do
 end
 
 defmodule Test do
-  require Asd
   require Maybe
 
   def test do
