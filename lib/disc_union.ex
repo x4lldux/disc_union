@@ -188,7 +188,7 @@ defmodule DiscUnion do
     # IO.puts "fallback: #{inspect all_cases |> DiscUnion.build_match_ast |> List.last |> Macro.escape }"
     IO.puts "fallback: #{inspect c}"
     # IO.puts "fallback: #{inspect c |> hd |> Macro.escape}"
-    all_cases |> DiscUnion.build_match_ast |> List.last |> Macro.escape
+    # IO.inspect all_cases |> DiscUnion.build_match_ast |> List.last |> Macro.escape
     c
   end
 

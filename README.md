@@ -4,7 +4,7 @@ Discriminated unions for Elixir
 
 ## TODO
 
- * [ ] add tests
+ * [x] add tests
  * [x] agree on naming convention
  * [ ] split up code into seperate files
  * [ ] refactor functions
