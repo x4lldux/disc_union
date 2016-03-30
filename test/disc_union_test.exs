@@ -115,14 +115,251 @@ defmodule DiscUnionTest do
     end
   end
 
-  test "discriminated union's `case` macro should riase when condition doesn't match discriminated union" do
+  test "discriminated union's `case` macro should riase when condition is not evaluated to this discriminated union" do
     assert_raise BadStructError, "expected a struct named TestDU, got: nil", fn ->
       require TestDU
       TestDU.case nil do
-              Qwe -> :ok
-            end
+               Qwe -> :ok
+             end
     end
   end
+
+  test "discriminated union's `case` macro accepts the `in` format for case arguments" do
+    require TestDU
+
+    x=TestDU.from Asd
+    res=TestDU.case x do
+                 Asd -> :asd
+                 Qwe in _ -> :qwe
+                 Rty in _, _ -> :rty
+               end
+    assert res == :asd
+
+    x=TestDU.from {Qwe, 1}
+    res=TestDU.case x do
+                 Asd -> :asd
+                 Qwe in _ -> :qwe
+                 Rty in _, _ -> :rty
+               end
+    assert res == :qwe
+
+    x=TestDU.from {Rty, 1, 1}
+    res=TestDU.case x do
+                 Asd -> :asd
+                 Qwe in _ -> :qwe
+                 Rty in _, _ -> :rty
+               end
+    assert res == :rty
+  end
+
+  test "discriminated union's `case` macro accepts the tuple format for case arguments" do
+    require TestDU
+
+    x=TestDU.from Asd
+    res=TestDU.case x do
+                 Asd -> :asd
+                 {Qwe, _} -> :qwe
+                 {Rty, _, _} -> :rty
+               end
+    assert res == :asd
+
+    x=TestDU.from {Qwe, 1}
+    res=TestDU.case x do
+                 Asd -> :asd
+                 {Qwe, _} -> :qwe
+                 {Rty, _, _} -> :rty
+               end
+    assert res == :qwe
+
+    x=TestDU.from {Rty, 1, 1}
+    res=TestDU.case x do
+                 Asd -> :asd
+                 {Qwe, _} -> :qwe
+                 {Rty, _, _} -> :rty
+               end
+    assert res == :rty
+  end
+
+  test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the `in` format for case arguments" do
+    require TestDU
+
+    c=Asd
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z=Qwe in _ -> z
+                 z=Rty in _, _ -> z
+               end
+    assert res == c
+
+    c={Qwe, 1}
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z=Qwe in _ -> z
+                 z=Rty in _, _ -> z
+               end
+    assert res == c
+
+    c={Rty, 1, 1}
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z=Qwe in _ -> z
+                 z=Rty in _, _ -> z
+               end
+    assert res == c
+  end
+
+  test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the tuple format for case arguments" do
+    require TestDU
+
+    c=Asd
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z={Qwe, _} -> z
+                 z={Rty, _, _} -> z
+               end
+    assert res == c
+
+    c={Qwe, 1}
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z={Qwe, _} -> z
+                 z={Rty, _, _} -> z
+               end
+    assert res == c
+
+    c={Rty, 1, 1}
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z={Qwe, _} -> z
+                 z={Rty, _, _} -> z
+               end
+    assert res == c
+  end
+
+  test "discriminated union's `case` macro accepts the `in` format for case arguments with guard present" do
+    require TestDU
+
+    x=TestDU.from Asd
+    res=TestDU.case x do
+                 Asd -> :asd
+                 Qwe in x when x>0 -> :qwe
+                 Rty in x, _ when x>0 -> :rty
+               end
+    assert res == :asd
+
+    x=TestDU.from {Qwe, 1}
+    res=TestDU.case x do
+                 Asd -> :asd
+                 Qwe in x when x>0 -> :qwe
+                 Rty in x, _ when x>0 -> :rty
+               end
+    assert res == :qwe
+
+    x=TestDU.from {Rty, 1, 1}
+    res=TestDU.case x do
+                 Asd -> :asd
+                 Qwe in x when x>0 -> :qwe
+                 Rty in x, _ when x>0 -> :rty
+               end
+    assert res == :rty
+  end
+
+  test "discriminated union's `case` macro accepts the tuple format for case arguments with guard present" do
+    require TestDU
+
+    x=TestDU.from Asd
+    res=TestDU.case x do
+                 Asd -> :asd
+                 {Qwe, x} when x>0 -> :qwe
+                 {Rty, x, _} when x>0 -> :rty
+               end
+    assert res == :asd
+
+    x=TestDU.from {Qwe, 1}
+    res=TestDU.case x do
+                 Asd -> :asd
+                 {Qwe, x} when x>0 -> :qwe
+                 {Rty, x, _} when x>0 -> :rty
+               end
+    assert res == :qwe
+
+    x=TestDU.from {Rty, 1, 1}
+    res=TestDU.case x do
+                 Asd -> :asd
+                 {Qwe, x} when x>0 -> :qwe
+                 {Rty, x, _} when x>0 -> :rty
+               end
+    assert res == :rty
+  end
+
+  test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the `in` format for case arguments with guard present" do
+    require TestDU
+
+    c=Asd
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z=Qwe in x when x>0 -> z
+                 z=Rty in x, _ when x>0 -> z
+               end
+    assert res == c
+
+    c={Qwe, 1}
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z=Qwe in x when x>0 -> z
+                 z=Rty in x, _ when x>0 -> z
+               end
+    assert res == c
+
+    c={Rty, 1, 1}
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z=Qwe in x when x>0 -> z
+                 z=Rty in x, _ when x>0 -> z
+               end
+    assert res == c
+  end
+
+  test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the tuple format for case arguments with guard present" do
+    require TestDU
+
+    c=Asd
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z={Qwe, x} when x>0 -> z
+                 z={Rty, x, _} when x>0 -> z
+               end
+    assert res == c
+
+    c={Qwe, 1}
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z={Qwe, x} when x>0 -> z
+                 z={Rty, x, _}when x>0  -> z
+               end
+    assert res == c
+
+    c={Rty, 1, 1}
+    x=TestDU.from c
+    res=TestDU.case x do
+                 z=Asd -> z
+                 z={Qwe, x} when x>0 -> z
+                 z={Rty, x, _} when x>0 -> z
+               end
+    assert res == c
+  end
+
 
   @tag :skip
   test "discriminated union's `case` macro should riase on unknow tags and cases" do
@@ -130,8 +367,8 @@ defmodule DiscUnionTest do
       require TestDU
       x=struct TestDU, case: Qqq
       TestDU.case x do
-              Qwe -> :ok
-            end
+               Qwe -> :ok
+             end
     end
   end
 
@@ -142,8 +379,8 @@ defmodule DiscUnionTest do
       x=struct TestDU, case: Asd
       TestDU.case x do
                Asd -> :asd
-               {Qwe, _} -> :qwe
-            end
+               Qwe in _ -> :qwe
+             end
     end
   end
 
