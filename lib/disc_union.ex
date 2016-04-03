@@ -3,8 +3,13 @@ defmodule DiscUnion do
   defmacro defunion(expr) do
     # IO.inspect expr
     cases = unpipe(expr)
-    IO.puts cases |> Macro.to_string
+    # IO.puts cases |> Macro.to_string
     # IO.inspect Macro.to_string expr
+
+    Module.register_attribute __CALLER__.module, :cases_canonical, persist: true
+    Module.put_attribute(__CALLER__.module,
+                         :cases_canonical,
+                         cases |> Enum.map(&canonical_form_of_case/1))
 
     case is_cases_valid cases do
       {:error, :not_atoms} -> raise ArgumentError, "union case tag must be an atom"
@@ -13,8 +18,21 @@ defmodule DiscUnion do
     end
   end
 
-  defp build_union(cases) do
-    quote location: :keep, bind_quoted: [all_cases: cases] do
+  defp canonical_form_of_case(c) do
+    case c do
+      {union_tag, union_args}               -> {union_tag |> canonical_union_tag, union_args |> length}
+      {:{}, _ctx, [union_tag | union_args]} -> {union_tag |> canonical_union_tag, union_args |> length}
+      union_tag                             -> {union_tag |> canonical_union_tag, 0}
+    end
+  end
+  defp canonical_union_tag({:__aliases__, _, union_tag}), do: {:__aliases__, union_tag}
+  defp canonical_union_tag(union_tag), do: union_tag
+
+  def build_union(cases) do
+    # quote location: :keep, bind_quoted: [all_cases: cases] do
+    quote location: :keep, unquote: true do
+      all_cases=unquote(cases)
+
       defstruct case: [], cases: all_cases
 
       defimpl Inspect do
@@ -35,26 +53,26 @@ defmodule DiscUnion do
       # if not, err "you're using gaurds - can't trace if all paths are covered, fallback (_) is needed"
       # * guard means `when` gaurd or a binding
       defmacro case(expr, do: block) do
-                 # IO.inspect expr
-                 # IO.inspect block
+        mod = __MODULE__
+        block = block
+        |> DiscUnion.transform_case_clauses(@cases_canonical)
 
-                 mod = __MODULE__
-                 block = block
-                 |> DiscUnion.transform_case_clauses(%__MODULE__{}.cases)
+        IO.puts "################################"
+        IO.inspect expr
+        block |> Macro.to_string |> IO.inspect
+        IO.puts "################################%"
 
-                 block |> Macro.to_string |> IO.inspect
-
-                 quote location: :keep do
-                   precond = unquote expr
-                   mod = unquote mod
-                   if not match?(%{__struct__: mod}, precond) do
-                     raise BadStructError, struct: mod, term: precond
-                   end
-                   case precond.case do
-                                  unquote(block)
-                                end
-                 end
-               end
+        quote location: :keep do
+          precond = unquote expr
+          mod = unquote mod
+          if not match?(%{__struct__: mod}, precond) do
+            raise BadStructError, struct: mod, term: precond
+          end
+          case precond.case do
+                         unquote(block)
+                       end
+        end
+      end
 
       DiscUnion.build_from_functions __MODULE__, all_cases
     end
@@ -63,102 +81,39 @@ defmodule DiscUnion do
   def transform_case_clauses(clauses, all_cases) do
     clauses
     |> Enum.map(fn {:->, ctx, [clause | clause_body]}->
-      IO.puts "\n\ntransformed"
-      IO.puts "\tfrom: #{inspect clause |> Macro.to_string}"
-      transformed_clause = transform_case_clause(clause, all_cases)
+      # IO.puts "\n\ntransformed"
+      # IO.puts "\tfrom: #{inspect clause |> Macro.to_string}"
+      # transformed_clause = transform_case_clause(clause, all_cases)
+      {transformed_clause, _acc} = clause
+      |> DiscUnion.Util.Case.map_reduce_clauses(&transform_case_clause/2, [])
+
+      transformed_clause |> DiscUnion.Util.Case.map_reduce_clauses(&check_for_unknown_case_clauses/2, {ctx, all_cases})
+      # transformed_clause |> DiscUnion.Util.Case.map_reduce_clauses(&check_for_missing_case_clauses/2, all_cases)
+
       # IO.puts "\t  to: #{inspect transformed_clause |> Macro.to_string}"
       {:->, ctx, [ transformed_clause | clause_body]}
     end)
   end
 
-  defp transform_case_clause([{:=, ctx, [ bind, precond ]} | rest_of_union_args], all_cases) do
-    # IO.puts "bind: #{inspect bind}"
-    # IO.puts "bind: #{bind |> Macro.to_string}"
-
-    precond = [precond | rest_of_union_args]
-    |> transform_case_clause(all_cases)
-    |> hd
-
-    # IO.puts "bind_out: #{inspect bind}"
-    # IO.puts "bind_out: #{bind |> Macro.to_string}"
-
-    [{:=, ctx, [ bind, precond ]}]
-  end
-
-  defp transform_case_clause([{:when, ctx, [ precond | guards_and_union_args ]}], all_cases) do
-    IO.puts "precond: #{inspect precond}"
-    IO.puts "precond: #{precond |> Macro.to_string}"
-
-    guard = guards_and_union_args |> List.last
-    union_arg = guards_and_union_args |> List.delete_at(-1)
-
-    precond = [precond | union_arg]
-    |> transform_case_clause(all_cases)
-    |> hd
-
-    # IO.puts "precond_out: #{inspect precond}"
-    # IO.puts "precond_out: #{precond |> Macro.to_string}"
-
-    [{:when, ctx, [ precond, guard ]}]
-  end
-
-  defp transform_case_clause([{:in, ctx, [union_tag | [union_arg] ]} | rest_of_union_args], all_cases) do
-    IO.puts ":in: #{inspect union_tag}"
-    IO.puts ":in: #{inspect union_tag |> Macro.to_string}"
+  defp transform_case_clause([{:in, ctx, [union_tag | [union_arg] ]} | rest_of_union_args], acc) do
     elems = [union_tag, union_arg | rest_of_union_args]
-    IO.puts ":in: #{inspect elems}"
-    IO.puts ":in: #{inspect elems |> Macro.to_string}"
-
-    line = ctx |> Keyword.get(:line, nil)
-    rais_if_clause_valid(union_tag, (elems|>length)-1, line, all_cases)
-
-
-    [{:{}, ctx, elems}]
-    # [{:in, ctx, tuple_form }]p
+    {[{:{}, ctx, elems}], acc}
   end
-
-  defp transform_case_clause([{union_tag={_, ctx, _}, union_args}], all_cases) do
-    IO.puts ":in: #{inspect union_tag}"
-    IO.puts ":in: #{inspect union_tag |> Macro.to_string}"
+  defp transform_case_clause([{union_tag={_, ctx, _}, union_args}], acc) do
     elems = [union_tag, union_args]
-    IO.puts ":in: #{inspect elems}"
-    IO.puts ":in: #{inspect elems |> Macro.to_string}"
-
-    line = ctx |> Keyword.get(:line, nil)
-    rais_if_clause_valid(union_tag, (elems|>length)-1, line, all_cases)
-
-
-    [{:{}, ctx, elems}]
-    # [{:in, ctx, tuple_form }]p
+    {[{:{}, ctx, elems}], acc}
   end
-
-  defp transform_case_clause([{:{}, ctx, [union_tag | union_args] }], all_cases) do
-    IO.puts ":in: #{inspect union_tag}"
-    IO.puts ":in: #{inspect union_tag |> Macro.to_string}"
+  defp transform_case_clause([{:{}, ctx, [union_tag | union_args] }], acc) do
     elems = [union_tag | union_args]
-    IO.puts ":in: #{inspect elems}"
-    IO.puts ":in: #{inspect elems |> Macro.to_string}"
+    {[{:{}, ctx, elems}], acc}
+  end
+  defp transform_case_clause(c, acc) do
+    {c, acc}
+  end
 
+  defp check_for_unknown_case_clauses([c], acc={ctx, all_cases}) do
     line = ctx |> Keyword.get(:line, nil)
-    rais_if_clause_valid(union_tag, (elems|>length)-1, line, all_cases)
-
-
-    [{:{}, ctx, elems}]
-    # [{:in, ctx, tuple_form }]p
-  end
-
-  # TUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
-  defp transform_case_clause(c, all_cases) do
-    # IO.puts "fallback: #{inspect all_cases |> DiscUnion.build_match_ast |> List.last |> Macro.escape }"
-    IO.puts "fallback: #{inspect c}"
-    # IO.puts "fallback: #{inspect c |> hd |> Macro.escape}"
-    # IO.inspect all_cases |> DiscUnion.build_match_ast |> List.last |> Macro.escape
-    c
-  end
-
-  defp rais_if_clause_valid(union_tag, union_args_count, line, all_cases) do
-    {evaled_case_tag, _} = Code.eval_quoted(union_tag)
-    if is_case_clause_valid(evaled_case_tag, union_args_count, all_cases) do
+    if c |> canonical_form_of_case |> is_case_clause_known(all_cases) do
       :ok
     else
       try do
@@ -167,22 +122,27 @@ defmodule DiscUnion do
         exception ->
           stacktrace = System.stacktrace
         if Exception.message(exception) == "oops" do
-          IO.inspect stacktrace
+          # IO.inspect stacktrace
           stacktrace = stacktrace |> Enum.drop(6)
-          reraise UndefinedUnionCaseError, [case: evaled_case_tag, case_args_count: union_args_count, line: line], stacktrace
+          {union_tag, union_args_count} = c |> canonical_form_of_case
+          reraise UndefinedUnionCaseError, [case: union_tag, case_args_count: union_args_count, line: line], stacktrace
         end
       end
     end
+
+    {[c], acc}
   end
-  defp is_case_clause_valid(union_tag, union_args_count, all_cases) do
-    IO.puts "is_case: #{inspect union_tag} #{inspect union_args_count} #{inspect all_cases}"
-    all_cases
-    |> Enum.any?(
-      fn c when is_atom(c)  -> c==union_tag && 0==union_args_count
-      c when is_tuple(c) -> elem(c, 0)==union_tag && tuple_size(c)==union_args_count+1
-      _ -> false
-    end)
+
+  defp is_case_clause_known(canonical_union_tag, all_cases) do
+    IO.puts "is_case: #{inspect canonical_union_tag} #{inspect all_cases}"
+    all_cases |> Enum.any?(& canonical_union_tag == &1)
   end
+
+  defp is_case_clause_known(canonical_union_tag, all_cases) do
+    IO.puts "is_case: #{inspect canonical_union_tag} #{inspect all_cases}"
+    all_cases |> Enum.any?(& canonical_union_tag == &1)
+  end
+
 
   defmacro build_from_functions(mod, cases) do
     quote bind_quoted: [cases: cases, mod: mod] do
@@ -299,39 +259,41 @@ end
 #   DiscUnion.defunion :aasd | :zxc in integer()*String.t | :qwe | :x
 # end
 
-defmodule Maybe do
-  require DiscUnion
+# defmodule Maybe do
+#   require DiscUnion
 
-  DiscUnion.defunion Nothing
-  | Just in any*any
+#   DiscUnion.defunion nil
+#   | :just in any*any
+#   # DiscUnion.defunion :Nothing | :Just in any
+# end
 
-  # DiscUnion.defunion :Nothing | :Just in any
-end
+# defmodule Test do
+#   require Maybe
 
-defmodule Test do
-  require Maybe
-
-  def test do
-    x=Maybe.from {Just, 2}
-    Maybe.case x do
-            Nothing -> :buu
-            :Nothing -> :buu
-            z=Nothing -> :buu
-            # Just in 2 -> :ined
-            # Just in 2, 2 -> :ined
-#            z=Just in x -> :ined_when
-#            z=Just in x when x<2 and x>0 -> :ined_when
-            z=Just in x, x -> :ined_when
-            z=Just in x, x when x<2 and x>0 -> :ined_when
-            # {Just, x} when x<2 and x>0 -> :tupled_when
-            # {Just, x} -> :tupled
-            # {Just, x, x} -> :tupled
-#            z={Just, x} when x<2 and x>0 -> :tupled
-            z={Just, x, x} -> :tupled
-            z={Just, x, x} when x<2 and x>0 -> :tupled_when
-          end
-  end
-end
+#   def test do
+#     Maybe.case Maybe.from {:just, 1} do
+#             :qwe -> :ok
+#           end
+#     # x=Maybe.from {Just, 2}
+# #     Maybe.case x do
+# #             Nothing -> :buu
+# #             :Nothing -> :buu
+# #             z=Nothing -> :buu
+# #             # Just in 2 -> :ined
+# #             # Just in 2, 2 -> :ined
+# # #            z=Just in x -> :ined_when
+# # #            z=Just in x when x<2 and x>0 -> :ined_when
+# #             z=Just in x, x -> :ined_when
+# #             z=Just in x, x when x<2 and x>0 -> :ined_when
+# #             # {Just, x} when x<2 and x>0 -> :tupled_when
+# #             # {Just, x} -> :tupled
+# #             # {Just, x, x} -> :tupled
+# # #            z={Just, x} when x<2 and x>0 -> :tupled
+# #             z={Just, x, x} -> :tupled
+# #             z={Just, x, x} when x<2 and x>0 -> :tupled_when
+# #           end
+#   end
+# end
 
 # [{:__aliases__, [counter: 0, line: 103], [:Nothing]}]
 # [{{:__aliases__, [counter: 0, line: 104], [:Just]}, {:x, [line: 104], nil}}]
