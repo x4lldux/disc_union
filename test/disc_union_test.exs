@@ -3,10 +3,11 @@ defmodule TestDU do
   DiscUnion.defunion Asd
   | Qwe in any
   | Rty in integer * atom
+  | :qqq
 end
 
 defmodule DiscUnionTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest DiscUnion
 
   test "discriminated union can have many case tags" do
@@ -23,6 +24,15 @@ defmodule DiscUnionTest do
                         | Qwe
                         | Rty
                         | Zxc
+                      end
+    end)
+    Code.eval_quoted(quote do
+                      defmodule TestC do
+                        require DiscUnion
+                        DiscUnion.defunion :asd
+                        | :qwe
+                        | :rtyq
+                        | :zxc
                       end
     end)
   end
@@ -119,7 +129,9 @@ defmodule DiscUnionTest do
     assert_raise BadStructError, "expected a struct named TestDU, got: nil", fn ->
       require TestDU
       TestDU.case nil do
-               Qwe -> :ok
+               Asd -> :asd
+               Qwe in _ -> :qwe
+               Rty in _, _ -> :rty
              end
     end
   end
@@ -360,28 +372,29 @@ defmodule DiscUnionTest do
     assert res == c
   end
 
-
-  @tag :skip
   test "discriminated union's `case` macro should riase on unknow tags and cases" do
     assert_raise UndefinedUnionCaseError, fn ->
-      require TestDU
-      x=struct TestDU, case: Qqq
-      TestDU.case x do
-               Qwe -> :ok
-             end
+      Code.eval_quoted(quote do
+                        require TestDU
+                        x=struct TestDU, case: Qqq
+                        TestDU.case x do
+                                 Qwe -> :ok
+                               end
+      end)
     end
   end
 
-  @tag :skip
   test "discriminated union's `case` macro should riase when not all cases are exhausted" do
     assert_raise MissingUnionCaseError, fn ->
-      require TestDU
-      x=struct TestDU, case: Asd
-      TestDU.case x do
-               Asd -> :asd
-               Qwe in _ -> :qwe
-             end
-    end
+      Code.eval_quoted(quote do
+                        require TestDU
+                        x=struct TestDU, case: Asd
+                        TestDU.case x do
+                                 Asd -> :asd
+                                 Qwe in _ -> :qwe
+                               end
+      end
+    end)
   end
 
 end
