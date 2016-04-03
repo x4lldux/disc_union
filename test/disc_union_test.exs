@@ -132,6 +132,7 @@ defmodule DiscUnionTest do
                Asd -> :asd
                Qwe in _ -> :qwe
                Rty in _, _ -> :rty
+               :qqq -> :qqq
              end
     end
   end
@@ -144,6 +145,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in _ -> :qwe
                  Rty in _, _ -> :rty
+                 :qqq -> :qqq
                end
     assert res == :asd
 
@@ -152,6 +154,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in _ -> :qwe
                  Rty in _, _ -> :rty
+                 :qqq -> :qqq
                end
     assert res == :qwe
 
@@ -160,6 +163,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in _ -> :qwe
                  Rty in _, _ -> :rty
+                 :qqq -> :qqq
                end
     assert res == :rty
   end
@@ -172,6 +176,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, _} -> :qwe
                  {Rty, _, _} -> :rty
+                 :qqq -> :qqq
                end
     assert res == :asd
 
@@ -180,6 +185,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, _} -> :qwe
                  {Rty, _, _} -> :rty
+                 :qqq -> :qqq
                end
     assert res == :qwe
 
@@ -188,6 +194,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, _} -> :qwe
                  {Rty, _, _} -> :rty
+                 :qqq -> :qqq
                end
     assert res == :rty
   end
@@ -201,6 +208,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in _ -> z
                  z=Rty in _, _ -> z
+                 z=:qqq -> z
                end
     assert res == c
 
@@ -210,6 +218,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in _ -> z
                  z=Rty in _, _ -> z
+                 z=:qqq -> z
                end
     assert res == c
 
@@ -219,6 +228,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in _ -> z
                  z=Rty in _, _ -> z
+                 z=:qqq -> z
                end
     assert res == c
   end
@@ -232,6 +242,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, _} -> z
                  z={Rty, _, _} -> z
+                 z=:qqq -> z
                end
     assert res == c
 
@@ -241,6 +252,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, _} -> z
                  z={Rty, _, _} -> z
+                 z=:qqq -> z
                end
     assert res == c
 
@@ -250,6 +262,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, _} -> z
                  z={Rty, _, _} -> z
+                 z=:qqq -> z
                end
     assert res == c
   end
@@ -262,6 +275,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in x when x>0 -> :qwe
                  Rty in x, _ when x>0 -> :rty
+                 :qqq -> :qqq
                end
     assert res == :asd
 
@@ -270,6 +284,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in x when x>0 -> :qwe
                  Rty in x, _ when x>0 -> :rty
+                 :qqq -> :qqq
                end
     assert res == :qwe
 
@@ -278,6 +293,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in x when x>0 -> :qwe
                  Rty in x, _ when x>0 -> :rty
+                 :qqq -> :qqq
                end
     assert res == :rty
   end
@@ -290,6 +306,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, x} when x>0 -> :qwe
                  {Rty, x, _} when x>0 -> :rty
+                 :qqq -> :qqq
                end
     assert res == :asd
 
@@ -298,6 +315,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, x} when x>0 -> :qwe
                  {Rty, x, _} when x>0 -> :rty
+                 :qqq -> :qqq
                end
     assert res == :qwe
 
@@ -306,6 +324,7 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, x} when x>0 -> :qwe
                  {Rty, x, _} when x>0 -> :rty
+                 :qqq -> :qqq
                end
     assert res == :rty
   end
@@ -319,6 +338,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in x when x>0 -> z
                  z=Rty in x, _ when x>0 -> z
+                 z=:qqq -> z
                end
     assert res == c
 
@@ -328,6 +348,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in x when x>0 -> z
                  z=Rty in x, _ when x>0 -> z
+                 z=:qqq -> z
                end
     assert res == c
 
@@ -337,6 +358,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in x when x>0 -> z
                  z=Rty in x, _ when x>0 -> z
+                 z=:qqq -> z
                end
     assert res == c
   end
@@ -350,6 +372,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, x} when x>0 -> z
                  z={Rty, x, _} when x>0 -> z
+                 z=:qqq -> z
                end
     assert res == c
 
@@ -359,6 +382,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, x} when x>0 -> z
                  z={Rty, x, _}when x>0  -> z
+                 z=:qqq -> z
                end
     assert res == c
 
@@ -368,6 +392,7 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, x} when x>0 -> z
                  z={Rty, x, _} when x>0 -> z
+                 z=:qqq -> z
                end
     assert res == c
   end
@@ -393,8 +418,8 @@ defmodule DiscUnionTest do
                                  Asd -> :asd
                                  Qwe in _ -> :qwe
                                end
-      end
-    end)
+      end)
+    end
   end
 
 end

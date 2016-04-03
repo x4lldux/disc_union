@@ -8,7 +8,7 @@ Discriminated unions for Elixir
  * [x] agree on naming convention
  * [x] split up code into seperate files
  * [ ] refactor functions
- * [ ] `case` macro should throw an error if not all cases are exhausted
+ * [x] `case` macro should throw an error if not all cases are exhausted
  * [ ] remove debuging statements
 
 ## Installation

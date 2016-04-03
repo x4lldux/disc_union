@@ -79,8 +79,8 @@ defmodule DiscUnion do
   end
 
   def transform_case_clauses(clauses, all_cases) do
-    clauses
-    |> Enum.map(fn {:->, ctx, [clause | clause_body]}->
+    {clauses, acc} = clauses
+    |> Enum.map_reduce([], fn {:->, ctx, [clause | clause_body]}, acc ->
       # IO.puts "\n\ntransformed"
       # IO.puts "\tfrom: #{inspect clause |> Macro.to_string}"
       # transformed_clause = transform_case_clause(clause, all_cases)
@@ -88,11 +88,17 @@ defmodule DiscUnion do
       |> DiscUnion.Util.Case.map_reduce_clauses(&transform_case_clause/2, [])
 
       transformed_clause |> DiscUnion.Util.Case.map_reduce_clauses(&check_for_unknown_case_clauses/2, {ctx, all_cases})
-      # transformed_clause |> DiscUnion.Util.Case.map_reduce_clauses(&check_for_missing_case_clauses/2, all_cases)
+      {_, acc}=transformed_clause |> check_for_missing_case_clauses(acc)
 
       # IO.puts "\t  to: #{inspect transformed_clause |> Macro.to_string}"
-      {:->, ctx, [ transformed_clause | clause_body]}
+      {{:->, ctx, [ transformed_clause | clause_body]}, acc}
     end)
+
+    if (length all_cases) > (length acc) do
+      raise MissingUnionCaseError, cases: []
+    end
+
+    clauses
   end
 
   defp transform_case_clause([{:in, ctx, [union_tag | [union_arg] ]} | rest_of_union_args], acc) do
@@ -138,11 +144,14 @@ defmodule DiscUnion do
     all_cases |> Enum.any?(& canonical_union_tag == &1)
   end
 
-  defp is_case_clause_known(canonical_union_tag, all_cases) do
-    IO.puts "is_case: #{inspect canonical_union_tag} #{inspect all_cases}"
-    all_cases |> Enum.any?(& canonical_union_tag == &1)
-  end
+  defp check_for_missing_case_clauses([c], used_cases) do
+    cc=c |> canonical_form_of_case
+    unless cc in used_cases do
+      used_cases = [cc | used_cases]
+    end
 
+    {[c], used_cases}
+  end
 
   defmacro build_from_functions(mod, cases) do
     quote bind_quoted: [cases: cases, mod: mod] do
