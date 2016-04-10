@@ -10,6 +10,7 @@ Discriminated unions for Elixir
  * [ ] refactor functions
  * [x] `case` macro should throw an error if not all cases are exhausted
  * [ ] remove debuging statements
+ * [ ] add constructor building for each union case and "bang" macros/functions for runtime checks
 
 ## Installation
 
