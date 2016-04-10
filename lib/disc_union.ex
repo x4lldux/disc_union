@@ -20,8 +20,8 @@ defmodule DiscUnion do
 
   defp canonical_form_of_case(c) do
     case c do
-      {union_tag, union_args}               -> {union_tag |> canonical_union_tag, union_args |> length}
       {:{}, _ctx, [union_tag | union_args]} -> {union_tag |> canonical_union_tag, union_args |> length}
+      {union_tag, _union_args}              -> {union_tag |> canonical_union_tag, 1}
       union_tag                             -> {union_tag |> canonical_union_tag, 0}
     end
   end
@@ -160,12 +160,12 @@ defmodule DiscUnion do
       cases
       |> DiscUnion.build_match_ast
       |> Enum.each(fn c ->
-      def from!( x=unquote(c) ) do
-        # check if case is known (including number of arguments)
-        # return %__MODULE__{case: potential_case}
+        def from!( x=unquote(c) ) do
+          # check if case is known (including number of arguments)
+          # return %__MODULE__{case: potential_case}
 
-        %__MODULE__{case: x}
-      end
+          %__MODULE__{case: x}
+        end
 
         def from(x=unquote(c), _) do
           from! x
@@ -185,11 +185,10 @@ defmodule DiscUnion do
       x when is_atom(x) ->
         x
       {op, ctx, [c | cs]} when op in [:{}, :__aliases__] and is_atom(c) ->
-        cs = cs
-      |> Enum.map(fn _ ->
-        quote do: _
-      end)
-      {:{}, ctx, [c |cs]}
+        cs = cs |> Enum.map(fn _ ->
+          quote do: _
+        end)
+        {:{}, ctx, [c |cs]}
       {c, _} when c |> is_atom -> # 2-tuple
         cs = [quote do: _]
       {:{}, [], [c | cs ]}

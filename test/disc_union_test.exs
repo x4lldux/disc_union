@@ -3,7 +3,12 @@ defmodule TestDU do
   DiscUnion.defunion Asd
   | Qwe in any
   | Rty in integer * atom
-  | :qqq
+end
+defmodule TestDUa do
+  require DiscUnion
+  DiscUnion.defunion :asd
+  | :qwe in any
+  | :rty in integer * atom
 end
 
 defmodule DiscUnionTest do
@@ -20,6 +25,13 @@ defmodule DiscUnionTest do
     Code.eval_quoted(quote do
                       defmodule TestB do
                         require DiscUnion
+                        DiscUnion.defunion :asd | :qwe
+                      end
+    end)
+
+    Code.eval_quoted(quote do
+                      defmodule TestC do
+                        require DiscUnion
                         DiscUnion.defunion Asd
                         | Qwe
                         | Rty
@@ -27,7 +39,7 @@ defmodule DiscUnionTest do
                       end
     end)
     Code.eval_quoted(quote do
-                      defmodule TestC do
+                      defmodule TestD do
                         require DiscUnion
                         DiscUnion.defunion :asd
                         | :qwe
@@ -49,6 +61,17 @@ defmodule DiscUnionTest do
                         | Fgh in {int, int} * {any, any, any}
                       end
     end)
+    Code.eval_quoted(quote do
+                      defmodule TestB do
+                        require DiscUnion
+                        DiscUnion.defunion :asd
+                        | :qwe in any
+                        | :rty in integer * atom
+                        | :zxc in integer * String.t * String.t
+                        | :vbn in {int, int}
+                        | :fgh in {int, int} * {any, any, any}
+                      end
+    end)
   end
 
   test "discriminated union case tags must be an atom" do
@@ -56,7 +79,7 @@ defmodule DiscUnionTest do
       Code.eval_quoted(quote do
                         defmodule TestA do
                           require DiscUnion
-                          DiscUnion.defunion 1 | 2 in any
+                          DiscUnion.defunion 1 | 2
                         end
       end)
     end
@@ -89,12 +112,11 @@ defmodule DiscUnionTest do
                         end
       end)
     end
-
     assert_raise ArgumentError, "union case tag must be unique", fn ->
       Code.eval_quoted(quote do
                         defmodule TestB do
                           require DiscUnion
-                          DiscUnion.defunion Asd | Asd in any
+                          DiscUnion.defunion :asd | :asd
                         end
       end)
     end
@@ -103,7 +125,32 @@ defmodule DiscUnionTest do
       Code.eval_quoted(quote do
                         defmodule TestC do
                           require DiscUnion
+                          DiscUnion.defunion Asd | Asd in any
+                        end
+      end)
+    end
+    assert_raise ArgumentError, "union case tag must be unique", fn ->
+      Code.eval_quoted(quote do
+                        defmodule TestD do
+                          require DiscUnion
+                          DiscUnion.defunion :asd | :asd in any
+                        end
+      end)
+    end
+
+    assert_raise ArgumentError, "union case tag must be unique", fn ->
+      Code.eval_quoted(quote do
+                        defmodule TestE do
+                          require DiscUnion
                           DiscUnion.defunion Asd | Asd in any*any
+                        end
+      end)
+    end
+    assert_raise ArgumentError, "union case tag must be unique", fn ->
+      Code.eval_quoted(quote do
+                        defmodule TestF do
+                          require DiscUnion
+                          DiscUnion.defunion :asd | :asd in any*any
                         end
       end)
     end
@@ -115,6 +162,12 @@ defmodule DiscUnionTest do
     assert TestDU.from!(Asd) == asd_case
     assert TestDU.from({Rty, 1, :ok}) != asd_case
     assert TestDU.from!({Rty, 1, :ok}) != asd_case
+
+    asd_case = struct TestDUa, %{case: :asd}
+    assert TestDUa.from(:asd) == asd_case
+    assert TestDUa.from!(:asd) == asd_case
+    assert TestDUa.from({:rty, 1, :ok}) != asd_case
+    assert TestDUa.from!({:rty, 1, :ok}) != asd_case
   end
 
   test "discriminated union cannot be constructed from invalid cases" do
@@ -122,6 +175,12 @@ defmodule DiscUnionTest do
     assert TestDU.from(Qqq, :no_such_case) == :no_such_case
     assert_raise FunctionClauseError, "no function clause matching in TestDU.from!/1", fn ->
       TestDU.from!(Qqq)
+    end
+
+    assert TestDUa.from(:qqq) == nil
+    assert TestDUa.from(:qqq, :no_such_case) == :no_such_case
+    assert_raise FunctionClauseError, "no function clause matching in TestDUa.from!/1", fn ->
+      TestDUa.from!(:qqq)
     end
   end
 
@@ -132,7 +191,14 @@ defmodule DiscUnionTest do
                Asd -> :asd
                Qwe in _ -> :qwe
                Rty in _, _ -> :rty
-               :qqq -> :qqq
+             end
+    end
+    assert_raise BadStructError, "expected a struct named TestDUa, got: nil", fn ->
+      require TestDUa
+      TestDUa.case nil do
+               :asd -> :asd
+               :qwe in _ -> :qwe
+               :rty in _, _ -> :rty
              end
     end
   end
@@ -145,7 +211,6 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in _ -> :qwe
                  Rty in _, _ -> :rty
-                 :qqq -> :qqq
                end
     assert res == :asd
 
@@ -154,7 +219,6 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in _ -> :qwe
                  Rty in _, _ -> :rty
-                 :qqq -> :qqq
                end
     assert res == :qwe
 
@@ -163,9 +227,36 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in _ -> :qwe
                  Rty in _, _ -> :rty
-                 :qqq -> :qqq
                end
     assert res == :rty
+
+    # tests for pure atoms
+    require TestDUa
+
+    x=TestDUa.from :asd
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 :qwe in _ -> :qwe
+                 :rty in _, _ -> :rty
+               end
+    assert res == :asd
+
+    x=TestDUa.from {:qwe, 1}
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 :qwe in _ -> :qwe
+                 :rty in _, _ -> :rty
+               end
+    assert res == :qwe
+
+    x=TestDUa.from {:rty, 1, 1}
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 :qwe in _ -> :qwe
+                 :rty in _, _ -> :rty
+               end
+    assert res == :rty
+
   end
 
   test "discriminated union's `case` macro accepts the tuple format for case arguments" do
@@ -176,7 +267,6 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, _} -> :qwe
                  {Rty, _, _} -> :rty
-                 :qqq -> :qqq
                end
     assert res == :asd
 
@@ -185,7 +275,6 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, _} -> :qwe
                  {Rty, _, _} -> :rty
-                 :qqq -> :qqq
                end
     assert res == :qwe
 
@@ -194,7 +283,33 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, _} -> :qwe
                  {Rty, _, _} -> :rty
-                 :qqq -> :qqq
+               end
+    assert res == :rty
+
+    # tests for pure atoms
+    require TestDUa
+
+    x=TestDUa.from :asd
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 {:qwe, _} -> :qwe
+                 {:rty, _, _} -> :rty
+               end
+    assert res == :asd
+
+    x=TestDUa.from {:qwe, 1}
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 {:qwe, _} -> :qwe
+                 {:rty, _, _} -> :rty
+               end
+    assert res == :qwe
+
+    x=TestDUa.from {:rty, 1, 1}
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 {:qwe, _} -> :qwe
+                 {:rty, _, _} -> :rty
                end
     assert res == :rty
   end
@@ -208,7 +323,6 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in _ -> z
                  z=Rty in _, _ -> z
-                 z=:qqq -> z
                end
     assert res == c
 
@@ -218,7 +332,6 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in _ -> z
                  z=Rty in _, _ -> z
-                 z=:qqq -> z
                end
     assert res == c
 
@@ -228,7 +341,36 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in _ -> z
                  z=Rty in _, _ -> z
-                 z=:qqq -> z
+               end
+    assert res == c
+
+    # tests for pure atoms
+    require TestDUa
+
+    c=:asd
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z=:qwe in _ -> z
+                 z=:rty in _, _ -> z
+               end
+    assert res == c
+
+    c={:qwe, 1}
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z=:qwe in _ -> z
+                 z=:rty in _, _ -> z
+               end
+    assert res == c
+
+    c={:rty, 1, 1}
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z=:qwe in _ -> z
+                 z=:rty in _, _ -> z
                end
     assert res == c
   end
@@ -242,7 +384,6 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, _} -> z
                  z={Rty, _, _} -> z
-                 z=:qqq -> z
                end
     assert res == c
 
@@ -252,7 +393,6 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, _} -> z
                  z={Rty, _, _} -> z
-                 z=:qqq -> z
                end
     assert res == c
 
@@ -262,7 +402,36 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, _} -> z
                  z={Rty, _, _} -> z
-                 z=:qqq -> z
+               end
+    assert res == c
+
+    # tests for pure atoms
+    require TestDUa
+
+    c=:asd
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z={:qwe, _} -> z
+                 z={:rty, _, _} -> z
+               end
+    assert res == c
+
+    c={:qwe, 1}
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z={:qwe, _} -> z
+                 z={:rty, _, _} -> z
+               end
+    assert res == c
+
+    c={:rty, 1, 1}
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z={:qwe, _} -> z
+                 z={:rty, _, _} -> z
                end
     assert res == c
   end
@@ -275,7 +444,6 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in x when x>0 -> :qwe
                  Rty in x, _ when x>0 -> :rty
-                 :qqq -> :qqq
                end
     assert res == :asd
 
@@ -284,7 +452,6 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in x when x>0 -> :qwe
                  Rty in x, _ when x>0 -> :rty
-                 :qqq -> :qqq
                end
     assert res == :qwe
 
@@ -293,7 +460,33 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  Qwe in x when x>0 -> :qwe
                  Rty in x, _ when x>0 -> :rty
-                 :qqq -> :qqq
+               end
+    assert res == :rty
+
+    # tests for pure atoms
+    require TestDUa
+
+    x=TestDUa.from :asd
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 :qwe in x when x>0 -> :qwe
+                 :rty in x, _ when x>0 -> :rty
+               end
+    assert res == :asd
+
+    x=TestDUa.from {:qwe, 1}
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 :qwe in x when x>0 -> :qwe
+                 :rty in x, _ when x>0 -> :rty
+               end
+    assert res == :qwe
+
+    x=TestDUa.from {:rty, 1, 1}
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 :qwe in x when x>0 -> :qwe
+                 :rty in x, _ when x>0 -> :rty
                end
     assert res == :rty
   end
@@ -306,7 +499,6 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, x} when x>0 -> :qwe
                  {Rty, x, _} when x>0 -> :rty
-                 :qqq -> :qqq
                end
     assert res == :asd
 
@@ -315,7 +507,6 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, x} when x>0 -> :qwe
                  {Rty, x, _} when x>0 -> :rty
-                 :qqq -> :qqq
                end
     assert res == :qwe
 
@@ -324,7 +515,33 @@ defmodule DiscUnionTest do
                  Asd -> :asd
                  {Qwe, x} when x>0 -> :qwe
                  {Rty, x, _} when x>0 -> :rty
-                 :qqq -> :qqq
+               end
+    assert res == :rty
+
+    # tests for pure atoms
+    require TestDUa
+
+    x=TestDUa.from :asd
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 {:qwe, x} when x>0 -> :qwe
+                 {:rty, x, _} when x>0 -> :rty
+               end
+    assert res == :asd
+
+    x=TestDUa.from {:qwe, 1}
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 {:qwe, x} when x>0 -> :qwe
+                 {:rty, x, _} when x>0 -> :rty
+               end
+    assert res == :qwe
+
+    x=TestDUa.from {:rty, 1, 1}
+    res=TestDUa.case x do
+                 :asd -> :asd
+                 {:qwe, x} when x>0 -> :qwe
+                 {:rty, x, _} when x>0 -> :rty
                end
     assert res == :rty
   end
@@ -338,7 +555,6 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in x when x>0 -> z
                  z=Rty in x, _ when x>0 -> z
-                 z=:qqq -> z
                end
     assert res == c
 
@@ -348,7 +564,6 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in x when x>0 -> z
                  z=Rty in x, _ when x>0 -> z
-                 z=:qqq -> z
                end
     assert res == c
 
@@ -358,7 +573,36 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z=Qwe in x when x>0 -> z
                  z=Rty in x, _ when x>0 -> z
-                 z=:qqq -> z
+               end
+    assert res == c
+
+    # tests for pure atoms
+    require TestDUa
+
+    c=:asd
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z=:qwe in x when x>0 -> z
+                 z=:rty in x, _ when x>0 -> z
+               end
+    assert res == c
+
+    c={:qwe, 1}
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z=:qwe in x when x>0 -> z
+                 z=:rty in x, _ when x>0 -> z
+               end
+    assert res == c
+
+    c={:rty, 1, 1}
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z=:qwe in x when x>0 -> z
+                 z=:rty in x, _ when x>0 -> z
                end
     assert res == c
   end
@@ -372,7 +616,6 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, x} when x>0 -> z
                  z={Rty, x, _} when x>0 -> z
-                 z=:qqq -> z
                end
     assert res == c
 
@@ -382,7 +625,6 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, x} when x>0 -> z
                  z={Rty, x, _}when x>0  -> z
-                 z=:qqq -> z
                end
     assert res == c
 
@@ -392,7 +634,36 @@ defmodule DiscUnionTest do
                  z=Asd -> z
                  z={Qwe, x} when x>0 -> z
                  z={Rty, x, _} when x>0 -> z
-                 z=:qqq -> z
+               end
+    assert res == c
+
+    # tests for pure atoms
+    require TestDUa
+
+    c=:asd
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z={:qwe, x} when x>0 -> z
+                 z={:rty, x, _} when x>0 -> z
+               end
+    assert res == c
+
+    c={:qwe, 1}
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z={:qwe, x} when x>0 -> z
+                 z={:rty, x, _}when x>0  -> z
+               end
+    assert res == c
+
+    c={:rty, 1, 1}
+    x=TestDUa.from c
+    res=TestDUa.case x do
+                 z=:asd -> z
+                 z={:qwe, x} when x>0 -> z
+                 z={:rty, x, _} when x>0 -> z
                end
     assert res == c
   end
@@ -407,6 +678,16 @@ defmodule DiscUnionTest do
                                end
       end)
     end
+
+    assert_raise UndefinedUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        x=struct TestDUa, case: :qqq
+                        TestDUa.case x do
+                                 :qwe -> :ok
+                               end
+      end)
+    end
   end
 
   test "discriminated union's `case` macro should riase when not all cases are exhausted" do
@@ -417,6 +698,16 @@ defmodule DiscUnionTest do
                         TestDU.case x do
                                  Asd -> :asd
                                  Qwe in _ -> :qwe
+                               end
+      end)
+    end
+    assert_raise MissingUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        x=struct TestDUa, case: :asd
+                        TestDUa.case x do
+                                 :asd -> :asd
+                                 :qwe in _ -> :qwe
                                end
       end)
     end
