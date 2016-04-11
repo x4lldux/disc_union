@@ -26,12 +26,13 @@ defmodule MissingUnionCaseError do
     |> Tuple.to_list
 
     args = args |> Enum.join(" * ")
-    "#{inspect tag} in #{args}"
+    "#{tag} in #{args}"
   end
+  defp format_case(c), do: c |> to_string
   def message(exception) do
     cases = exception.cases
     |> Enum.map(&format_case/1)
     |> Enum.join(", ")
-    "not all defined union cases are used, should be all of: #{inspect(exception.cases)}"
+    "not all defined union cases are used, should be all of: #{cases}"
   end
 end

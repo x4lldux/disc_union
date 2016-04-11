@@ -744,10 +744,34 @@ defmodule DiscUnionTest do
     end
     assert_raise MissingUnionCaseError, fn ->
       Code.eval_quoted(quote do
+                        require TestDU
+                        x=struct TestDU, case: Asd
+                        TestDU.case x do
+                                 Asd -> :asd
+                                 Qwe in 1 -> :qwe
+                                 Qwe in x when x > 1 -> :qwe
+                                 Qwe in _ -> :qwe
+                               end
+      end)
+    end
+    assert_raise MissingUnionCaseError, fn ->
+      Code.eval_quoted(quote do
                         require TestDUa
                         x=struct TestDUa, case: :asd
                         TestDUa.case x do
                                  :asd -> :asd
+                                 :qwe in _ -> :qwe
+                               end
+      end)
+    end
+    assert_raise MissingUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        x=struct TestDUa, case: :asd
+                        TestDUa.case x do
+                                 :asd -> :asd
+                                 :qwe in 1 -> :qwe
+                                 :qwe in x when x >2 -> :qwe
                                  :qwe in _ -> :qwe
                                end
       end)

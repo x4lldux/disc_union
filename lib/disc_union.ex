@@ -106,8 +106,11 @@ defmodule DiscUnion do
       {transformed_clause, _acc} = clause
       |> DiscUnion.Util.Case.map_reduce_clauses(&transform_case_clause/2, [])
 
-      transformed_clause |> DiscUnion.Util.Case.map_reduce_clauses(&check_for_unknown_case_clauses/2, {ctx, all_cases})
-      {_, acc}=transformed_clause |> check_for_missing_case_clauses(acc)
+      transformed_clause
+      |> DiscUnion.Util.Case.map_reduce_clauses(&check_for_unknown_case_clauses/2, {ctx, all_cases})
+      # {_, acc}=transformed_clause |> check_for_missing_case_clauses(acc)
+      {_, acc}=transformed_clause
+      |> DiscUnion.Util.Case.map_reduce_clauses(&check_for_missing_case_clauses/2, acc)
 
       # IO.puts "\t  to: #{inspect transformed_clause |> Macro.to_string}"
       {{:->, ctx, [ transformed_clause | clause_body]}, acc}
@@ -174,7 +177,8 @@ defmodule DiscUnion do
   end
 
   defp check_for_missing_case_clauses([c], used_cases) do
-    cc=c |> canonical_form_of_case
+    {canonical_union_tag, canonical_union_args_count, _} = c |> canonical_form_of_case
+    cc={canonical_union_tag, canonical_union_args_count}
     unless cc in used_cases do
       used_cases = [cc | used_cases]
     end

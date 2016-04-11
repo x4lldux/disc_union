@@ -19,7 +19,8 @@ defmodule DiscUnion.Util.Case do
     # IO.puts "bind_out: #{inspect bind}"
     # IO.puts "bind_out: #{bind |> Macro.to_string}"
 
-    {[{:=, ctx, [ bind, precond ]}], {f, f_acc}}
+    # {[{:=, ctx, [ bind, precond ]}], {f, f_acc}}
+    {[{:=, ctx, [ bind, precond ]}], f_acc}
   end
 
   defp map_reduce_clause([{:when, ctx, [ precond | guards_and_union_args ]}], {f, acc}) do
@@ -35,12 +36,13 @@ defmodule DiscUnion.Util.Case do
     # IO.puts "precond_out: #{inspect precond}"
     # IO.puts "precond_out: #{precond |> Macro.to_string}"
 
-    {[{:when, ctx, [ precond, guard ]}], {f, f_acc}}
+    # {[{:when, ctx, [ precond, guard ]}], {f, f_acc}}
+    {[{:when, ctx, [ precond, guard ]}], f_acc}
   end
 
   defp map_reduce_clause(elem, {f, acc}) do
     #   # IO.puts "fallback: #{inspect all_cases |> DiscUnion.build_match_ast |> List.last |> Macro.escape }"
-      # IO.puts "fallback: #{inspect elem}"
+    # IO.puts "fallback: #{inspect elem}"
     #   # IO.puts "fallback: #{inspect c |> hd |> Macro.escape}"
     #   # IO.inspect all_cases |> DiscUnion.build_match_ast |> List.last |> Macro.escape
     {new_elem, f_acc}=f.(elem, acc)
