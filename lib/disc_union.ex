@@ -117,11 +117,17 @@ defmodule DiscUnion do
     end)
 
     if (length all_cases) > (length acc) do
-      IO.inspect all_cases
-      cases = all_cases
-      |> Enum.map(&elem(&1, 2))
-      cases |> IO.inspect
-      raise MissingUnionCaseError, cases: cases
+      try do
+        raise "oops"
+      rescue
+        exception ->
+          stacktrace = System.stacktrace
+          if Exception.message(exception) == "oops" do
+            stacktrace = stacktrace |> Enum.drop(1)
+            cases = all_cases |> Enum.map(&elem(&1, 2))
+            reraise MissingUnionCaseError, [cases: cases], stacktrace
+          end
+      end
     end
 
     clauses
