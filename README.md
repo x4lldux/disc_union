@@ -1,16 +1,14 @@
 # DiscUnion
 
-Discriminated unions for Elixir
+## Description
 
-## TODO
+Discriminated unions for Elixir.
 
- * [x] add tests
- * [x] agree on naming convention
- * [x] split up code into seperate files
- * [ ] refactor functions
- * [x] `case` macro should throw an error if not all cases are exhausted
- * [ ] remove debuging statements
- * [x] add constructor building for each union case and "bang" macros/functions for runtime checks
+Allows for building data structure with a closed set of representations/cases as an alternative for a tuple+atom combo. Provides macros and functions for creating and matching on datastructres which throw compile-time and run-time exceptions if an unknow case was used or not all cases were covered in a match.
+It's inspired by ML/OCaml/F# way of building discriminated unions. Unfortunately, Elixir does not support such a strong typing and this library will not solve this. This library allows to easly catch common mistakes at compile-time instead of run-time (those can be sometimes hard to detect).
+
+In `example` folder, there is a tennis kata example, a simple coding excercise, that shows exactly how to use this library. If `Game in _`, in `Tennis.score_point/2` functions, would be commented compiler would throw and error with
+
 
 ## Installation
 
