@@ -31,9 +31,17 @@ defmodule DiscUnion do
 
   def canonical_form_of_case(c) do
     case c do
-      {:{}, _ctx, [union_tag | union_args]} -> {union_tag |> canonical_union_tag, union_args |> length}
-      {union_tag, _union_args}              -> {union_tag |> canonical_union_tag, 1}
-      union_tag                             -> {union_tag |> canonical_union_tag, 0}
+      {:{}, _ctx, [union_tag | union_args]} ->
+        str_case = [union_tag | union_args]
+        |> Enum.map(&Macro.to_string/1)
+        |> List.to_tuple
+        {union_tag |> canonical_union_tag, union_args |> length, str_case}
+      {union_tag, union_arg}              ->
+        str_case = [union_tag, union_arg]
+        |> Enum.map(&Macro.to_string/1)
+        |> List.to_tuple
+        {union_tag |> canonical_union_tag, 1, str_case}
+      union_tag                             -> {union_tag |> canonical_union_tag, 0, c |> Macro.to_string}
     end
   end
   defp canonical_union_tag({:__aliases__, _, union_tag}), do: {:__aliases__, union_tag}
@@ -106,7 +114,11 @@ defmodule DiscUnion do
     end)
 
     if (length all_cases) > (length acc) do
-      raise MissingUnionCaseError, cases: []
+      IO.inspect all_cases
+      cases = all_cases
+      |> Enum.map(&elem(&1, 2))
+      cases |> IO.inspect
+      raise MissingUnionCaseError, cases: cases
     end
 
     clauses
@@ -129,7 +141,6 @@ defmodule DiscUnion do
   end
 
   defp check_for_unknown_case_clauses([c], acc={ctx, all_cases}) do
-    line = ctx |> Keyword.get(:line, nil)
     if c |> canonical_form_of_case |> is_case_clause_known(all_cases) do
       :ok
     else
@@ -137,13 +148,17 @@ defmodule DiscUnion do
         raise "oops"
       rescue
         exception ->
+          line = ctx |> Keyword.get(:line, nil)
           stacktrace = System.stacktrace
-        if Exception.message(exception) == "oops" do
-          # IO.inspect stacktrace
-          stacktrace = stacktrace |> Enum.drop(6)
-          {union_tag, union_args_count} = c |> canonical_form_of_case
-          reraise UndefinedUnionCaseError, [case: union_tag, case_args_count: union_args_count, line: line], stacktrace
-        end
+          if Exception.message(exception) == "oops" do
+            stacktrace = stacktrace |> Enum.drop(7)
+            {_, union_args_count, str_form} = c |> canonical_form_of_case
+            union_tag = case str_form do
+                          x when is_tuple(x) -> x |> elem(0)
+                          x  -> x
+                        end
+            reraise UndefinedUnionCaseError, [case: union_tag, case_args_count: union_args_count, line: line], stacktrace
+          end
       end
     end
 
@@ -151,8 +166,11 @@ defmodule DiscUnion do
   end
 
   defp is_case_clause_known(canonical_union_tag, all_cases) do
+    {canonical_union_tag, canonical_union_args_count, _} = canonical_union_tag
     IO.puts "is_case: #{inspect canonical_union_tag} #{inspect all_cases}"
-    all_cases |> Enum.any?(& canonical_union_tag == &1)
+    all_cases |> Enum.any?(fn {tag, args_count, _} ->
+      {canonical_union_tag, canonical_union_args_count} == {tag, args_count}
+    end)
   end
 
   defp check_for_missing_case_clauses([c], used_cases) do
@@ -195,12 +213,17 @@ defmodule DiscUnion do
         rescue
           exception ->
             stacktrace = System.stacktrace
-          if Exception.message(exception) == "oops" do
-            # IO.inspect stacktrace
-            stacktrace = stacktrace |> Enum.drop(6)
-            {union_tag, union_args_count} = c |> DiscUnion.canonical_form_of_case
-            reraise UndefinedUnionCaseError, [case: union_tag, case_args_count: union_args_count], stacktrace
-          end
+            if Exception.message(exception) == "oops" do
+              # IO.inspect stacktrace
+              stacktrace = stacktrace |> Enum.drop(1)
+              # {union_tag, union_args_count, _} = c |> DiscUnion.canonical_form_of_case
+              {_, union_args_count, str_form} = c |> DiscUnion.canonical_form_of_case
+              union_tag = case str_form do
+                            x when is_tuple(x) -> x |> elem(0)
+                            x  -> x
+                          end
+              reraise UndefinedUnionCaseError, [case: union_tag, case_args_count: union_args_count], stacktrace
+            end
         end
       end
 

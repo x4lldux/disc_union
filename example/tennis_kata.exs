@@ -32,7 +32,7 @@ defmodule Tennis do
   require Score
 
   def run_test_match do
-    # Player A will always win!
+    # Player A will always wins!
     # All hail the victor!
 
     Score.zero_score
