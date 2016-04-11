@@ -4,10 +4,107 @@
 
 Discriminated unions for Elixir.
 
-Allows for building data structure with a closed set of representations/cases as an alternative for a tuple+atom combo. Provides macros and functions for creating and matching on datastructres which throw compile-time and run-time exceptions if an unknow case was used or not all cases were covered in a match.
-It's inspired by ML/OCaml/F# way of building discriminated unions. Unfortunately, Elixir does not support such a strong typing and this library will not solve this. This library allows to easly catch common mistakes at compile-time instead of run-time (those can be sometimes hard to detect).
+Allows for building data structure with a closed set of representations/cases as an alternative for a tuple+atom combo.
+Provides macros and functions for creating and matching on datastructres which throw compile-time and run-time
+exceptions if an unknow case was used or not all cases were covered in a match. It's inspired by ML/OCaml/F# way of
+building discriminated unions. Unfortunately, Elixir does not support such a strong typing and this library will not
+solve this. This library allows to easly catch common mistakes at compile-time instead of run-time (those can be
+sometimes hard to detect).
 
-In `example` folder, there is a tennis kata example, a simple coding excercise, that shows exactly how to use this library. If `Game in _`, in `Tennis.score_point/2` functions, would be commented compiler would throw and error with
+## How to use
+
+In `example` folder, there is a tennis kata example, a simple coding excercise, that shows exactly how to use this
+library.
+
+To define a discriminated union, `defunion` macro is used:
+
+``` elixir
+defmodule ShapeArea do
+    use DiscUnion
+
+    defunion Point
+    | Circle in float()
+    | Rectangle in any * any
+end
+```
+
+Type specs in `Circle` or `Rectangle` definitions are only for user description and have no influance on code nor are
+they used for any type checking - there is no typchecking other then checking if correct cases were used!
+
+When constructing a case, you have three options: `from/1` macro (compile-time checking), a dynamicaly built macro named
+after union tag (in a camalized form, i.e. `Score`'s `Advantage` case, in tennis kata, would be available as
+`Score.advantage/2` macro and also with compile-time checking), and a `from!/` or `from!/2` functions (only run-time
+checking).
+
+If `Score.from {Pointz, 1, 2}` be placed somwhere in `run_test_match/0` function, in tennis kata, compiler would throw
+this error:
+
+``` elixir
+== Compilation error on file example/tennis_kata.exs ==
+** (UndefinedUnionCaseError) undefined union case: {Pointz, 1, 2}
+    (disc_union) expanding macro: Score.from/1
+    (disc_union) example/tennis_kata.exs:38: Tennis.run_test_match/0
+```
+
+If you would use `from!/1`, this error would be thrown at run-time, or, in the case of `from!/2`, not at all! Function
+`from!/2` returns it's second argument when unknow clause is passed to the function.
+
+
+For each discriminated union, a special `case` macro is created. This macro checks if all cases were covered in it's
+clauses (at compile-time) and expects it's predicate to be evaluated to this discriminated union's struct (checked at
+run-time).
+
+If `Game in _`, in `Tennis.score_point/2` functions, would be commented, compiler would throw this error:
+
+``` elixir
+== Compilation error on file example/tennis_kata.exs ==
+** (MissingUnionCaseError) not all defined union cases are used, should be all of: Points in "PlayerPoints" * "PlayerPoints", Advantage in "Player", Deuce, Game in "Player"
+    (disc_union) expanding macro: Score.case/2
+    (disc_union) example/tennis_kata.exs:64: Tennis.score_point/2
+
+```
+
+
+## How it works
+
+Underneath, it's just a module containg a struct with tuples and some dynamicly built macros. This property can be used
+for matching in function deffinitions, altough it will not look as clearly as a `case` macro built for a discriminated
+union.
+
+
+The `ShapeArea` union creates a `%ShapeArea{}` struct with current active case held in `case` field and all possible
+cases held in `cases` field:
+
+``` elixir
+%ShapeArea{case: Point} = ShapeArea.point
+%ShapeArea{case: {Circle, :foo}} = ShapeArea.circle(:foo)
+```
+
+Cases that have arguments are just tuples; n-argument union case is a n+1-tuple with a case tag as it's first element.
+This should work seamlessly with existing convections:
+
+``` elixir
+defmodule Result do
+    use DiscUnion
+
+    defunion :ok in any | :error in String.t
+end
+
+defmodule Test do
+    require Result
+
+    def run(file) do
+        res = Result.from! File.open(file)
+        Result.case res do
+            r={:ok, io_dev}                       -> {:yey, r, io_dev}
+            :error in reason when reason==:eacces -> :too_much_protections
+            :error in :enoent                     -> :why_no_file
+            :error in _reason                     -> :ney
+        end
+    end
+end
+```
+Since cases are just a tuples, they can be used also used as a clause for `case` macro. Matching and gaurds also works!
 
 
 ## Installation
