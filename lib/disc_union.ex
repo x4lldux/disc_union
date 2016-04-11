@@ -1,5 +1,16 @@
 defmodule DiscUnion do
 
+  defmacro __using__(opts) do
+    if true==Keyword.get opts, :constructors do
+      Module.put_attribute(__CALLER__.module, :constructors, true)
+    end
+
+    quote do
+      require DiscUnion
+      import DiscUnion, only: [defunion: 1]
+    end
+  end
+
   defmacro defunion(expr) do
     # IO.inspect expr
     cases = unpipe(expr)
@@ -18,7 +29,7 @@ defmodule DiscUnion do
     end
   end
 
-  defp canonical_form_of_case(c) do
+  def canonical_form_of_case(c) do
     case c do
       {:{}, _ctx, [union_tag | union_args]} -> {union_tag |> canonical_union_tag, union_args |> length}
       {union_tag, _union_args}              -> {union_tag |> canonical_union_tag, 1}
@@ -155,24 +166,79 @@ defmodule DiscUnion do
 
   defmacro build_from_functions(mod, cases) do
     quote bind_quoted: [cases: cases, mod: mod] do
-      def from(_case, _ret \\ nil)
-
       cases
       |> DiscUnion.build_match_ast
       |> Enum.each(fn c ->
         def from!( x=unquote(c) ) do
           # check if case is known (including number of arguments)
-          # return %__MODULE__{case: potential_case}
-
           %__MODULE__{case: x}
         end
-
-        def from(x=unquote(c), _) do
-          from! x
+        def from!( x=unquote(c), _) do
+          %__MODULE__{case: x}
         end
       end)
 
-      def from(_case, ret), do: ret
+      defmacro from(c) do
+        case [c] |> DiscUnion.is_only_atoms do
+          true ->
+            {c, _}=Code.eval_quoted c
+            from!(c) |> Macro.escape
+          false ->
+            c |> Macro.to_string |> from!
+        end
+      end
+
+      def from!(_, ret), do: ret
+      def from!(c) do
+        try do
+          raise "oops"
+        rescue
+          exception ->
+            stacktrace = System.stacktrace
+          if Exception.message(exception) == "oops" do
+            # IO.inspect stacktrace
+            stacktrace = stacktrace |> Enum.drop(6)
+            {union_tag, union_args_count} = c |> DiscUnion.canonical_form_of_case
+            reraise UndefinedUnionCaseError, [case: union_tag, case_args_count: union_args_count], stacktrace
+          end
+        end
+      end
+
+      cases
+      |> Enum.map(fn
+        x when is_atom x ->
+          {x, 0}
+        x when is_tuple(x) and x |> elem(0) |> is_atom ->
+          {x |> elem(0), tuple_size(x)-1 }
+      end)
+      |> Enum.map(fn {c, count} ->
+        case c |> to_string do
+          "Elixir." <> m ->
+            c={:__aliases__,  [], [m |> String.to_atom]} |> Macro.escape
+            {m |> Macro.underscore |> String.to_atom, c, count}
+          _ ->
+            {c |> to_string |> Macro.underscore |> String.to_atom, c, count}
+        end
+      end)
+      |> Enum.map(fn            # HACK: too many quotes and unquotes. only solutions I could up to combine quoted and unquoted expression
+        {c, orig_c, 0} ->
+          defmacro unquote(c)() do
+            # from!(unquote(orig_c))
+            # |> Macro.expand(__ENV__)
+            # |> Macro.escape
+            {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: unquote(orig_c)]}]}
+          end
+
+        {c, orig_c, count} ->
+          args = 1..count |> Enum.map(&(Macro.var("v#{&1}" |> String.to_atom, nil)))
+          defmacro unquote(c)(unquote_splicing(args)) do
+            tuple = {:{}, [], [unquote(orig_c)  | unquote(args)]}
+            # __MODULE__.from!(tuple)
+            # |> Macro.expand(__ENV__)
+            # |> Macro.escape
+            {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: tuple]}]}
+          end
+      end)
     end
   end
 
@@ -228,30 +294,32 @@ defmodule DiscUnion do
     end
   end
 
-  defp is_only_atoms(cases) do
-    # cases |> Enum.each(&IO.inspect/1)
+  def is_only_atoms(cases) do
     cases
     |> Enum.all?(
                  fn
-                   {:__aliases__, _, [x|_]} when is_atom x -> true
-                 {:{}, _, [x|_]} when is_atom x          -> true
-                 x when is_tuple x and x |> elem(0) |> is_atom -> true
-                 x when is_atom x                        -> true
-                 _                                       -> false
+                   {:__aliases__, _, [x|_]} when is_atom x               -> true
+                   {:{}, _, [{:__aliases__, _, [x|_]}|_]} when is_atom x -> true
+                   {:{}, _, [x|_]} when is_atom x                        -> true
+                   {{:__aliases__, _, [x|_]}, _} when is_atom x          -> true
+                   {x, _} when is_atom x                                 -> true
+                   x when is_atom x                                      -> true
+                   _                                                     -> false
                  end
     )
   end
 
+  # TODO: check why guards in is_only_atoms and is_unique are different!
   defp is_unique(cases) do
     unique_cases = cases
     |> Enum.map(
                 fn
-                  {:__aliases__, _, [x|_]} when is_atom x -> x
-                  {:{}, _, [{:__aliases__, _, [x|_]}|_]} when is_atom x -> x
-                  {:{}, _, [x|_]} when is_atom x          -> x
-                  {{:__aliases__, _, [x|_]}, _} when is_tuple x and x |> elem(0) |> is_atom -> x |> elem(0)
-                  {x, _} when is_tuple x and x |> elem(0) |> is_atom -> x |> elem(0)
-                  x when is_atom x                        -> x
+                  {:__aliases__, _, [x|_]} when is_atom x                                    -> x
+                  {:{}, _, [{:__aliases__, _, [x|_]}|_]} when is_atom x                      -> x
+                  {:{}, _, [x|_]} when is_atom x                                             -> x
+                  {{:__aliases__, _, [x|_]}, _} when is_tuple(x) and x |> elem(0) |> is_atom -> x |> elem(0)
+                  {x, _} when is_tuple(x) and x |> elem(0) |> is_atom                        -> x |> elem(0)
+                  x when is_atom x                                                           -> x
                 end)
     |> Enum.uniq
 
@@ -259,86 +327,3 @@ defmodule DiscUnion do
   end
 
 end
-
-
-# defmodule Asd do
-#   require DiscUnion
-
-#   DiscUnion.defunion :aasd | :zxc in integer()*String.t | :qwe | :x
-# end
-
-# defmodule Maybe do
-#   require DiscUnion
-
-#   DiscUnion.defunion nil
-#   | :just in any*any
-#   # DiscUnion.defunion :Nothing | :Just in any
-# end
-
-# defmodule Test do
-#   require Maybe
-
-#   def test do
-#     Maybe.case Maybe.from {:just, 1} do
-#             :qwe -> :ok
-#           end
-#     # x=Maybe.from {Just, 2}
-# #     Maybe.case x do
-# #             Nothing -> :buu
-# #             :Nothing -> :buu
-# #             z=Nothing -> :buu
-# #             # Just in 2 -> :ined
-# #             # Just in 2, 2 -> :ined
-# # #            z=Just in x -> :ined_when
-# # #            z=Just in x when x<2 and x>0 -> :ined_when
-# #             z=Just in x, x -> :ined_when
-# #             z=Just in x, x when x<2 and x>0 -> :ined_when
-# #             # {Just, x} when x<2 and x>0 -> :tupled_when
-# #             # {Just, x} -> :tupled
-# #             # {Just, x, x} -> :tupled
-# # #            z={Just, x} when x<2 and x>0 -> :tupled
-# #             z={Just, x, x} -> :tupled
-# #             z={Just, x, x} when x<2 and x>0 -> :tupled_when
-# #           end
-#   end
-# end
-
-# [{:__aliases__, [counter: 0, line: 103], [:Nothing]}]
-# [{{:__aliases__, [counter: 0, line: 104], [:Just]}, {:x, [line: 104], nil}}]
-# [{:in, [line: 105], [{:__aliases__, [counter: 0, line: 105], [:Just]}, 2]}]
-# [{:in, [line: 106], [{:__aliases__, [counter: 0, line: 106], [:Just]}, 2]}, 2]
-# [{:when, [line: 107],
-#   [{:in, [line: 107], [{:__aliases__, [counter: 0, line: 107], [:Just]}, 2]},
-#    {:<, [line: 107], [{:x, [line: 107], nil}, 2]}]}]
-# [{:when, [line: 108],
-#   [{:in, [line: 108], [{:__aliases__, [counter: 0, line: 108], [:Just]}, 2]}, 2,
-#    {:<, [line: 108], [{:x, [line: 108], nil}, 2]}]}]
-# [{:when, [line: 109],
-#   [{{:__aliases__, [counter: 0, line: 109], [:Just]}, {:x, [line: 109], nil}},
-#    {:<, [line: 109], [{:x, [line: 109], nil}, 2]}]}]
-
-# [{:when, [line: 233],
-#   [{:in, [line: 233], [{:__aliases__, [counter: 0, line: 233], [:Just]}, 2]},
-#    {:and, [line: 233],
-#     [{:<, [line: 233], [{:x, [line: 233], nil}, 2]},
-#      {:>, [line: 233], [{:x, [line: 233], nil}, 0]}]}]}]
-# "[Just in 2 when x < 2 and x > 0]"
-
-# [{:when, [line: 234],
-#   [{:in, [line: 234], [{:__aliases__, [counter: 0, line: 234], [:Just]}, 2]}, 2,
-#    {:and, [line: 234],
-#     [{:<, [line: 234], [{:x, [line: 234], nil}, 2]},
-#      {:>, [line: 234], [{:x, [line: 234], nil}, 0]}]}]}]
-# "[(Just in 2, 2) when x < 2 and x > 0]"
-
-# [{:when, [line: 235],
-#   [{{:__aliases__, [counter: 0, line: 235], [:Just]}, {:x, [line: 235], nil}},
-#    {:and, [line: 235],
-#     [{:<, [line: 235], [{:x, [line: 235], nil}, 2]},
-#      {:>, [line: 235], [{:x, [line: 235], nil}, 0]}]}]}]
-# "[{Just, x} when x < 2 and x > 0]"
-
-# [{:=, [line: 239],
-#   [{:z, [line: 239], nil},
-#    {:{}, [line: 239], [{:__aliases__, [counter: 0, line: 239], [:Just]}, {:x, [line: 239], nil}, {:x, [line: 239], nil}]}
-#   ]}]

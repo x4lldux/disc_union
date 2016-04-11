@@ -156,32 +156,73 @@ defmodule DiscUnionTest do
     end
   end
 
-  test "discriminated union can be constructed from valid cases" do
+  test "discriminated union can be constructed via `from/1` and `from!/1` from valid cases" do
+    require TestDU
+    require TestDUa
+
     asd_case = struct TestDU, %{case: Asd}
+    rty_case = struct TestDU, %{case: {Rty, 1, :ok}}
     assert TestDU.from(Asd) == asd_case
+    assert TestDU.from({Rty, 1, :ok}) == rty_case
     assert TestDU.from!(Asd) == asd_case
-    assert TestDU.from({Rty, 1, :ok}) != asd_case
-    assert TestDU.from!({Rty, 1, :ok}) != asd_case
+    assert TestDU.from!({Rty, 1, :ok}) == rty_case
 
     asd_case = struct TestDUa, %{case: :asd}
+    rty_case = struct TestDUa, %{case: {:rty, 1, :ok}}
     assert TestDUa.from(:asd) == asd_case
+    assert TestDUa.from({:rty, 1, :ok}) == rty_case
     assert TestDUa.from!(:asd) == asd_case
-    assert TestDUa.from({:rty, 1, :ok}) != asd_case
-    assert TestDUa.from!({:rty, 1, :ok}) != asd_case
+    assert TestDUa.from!({:rty, 1, :ok}) == rty_case
   end
 
-  test "discriminated union cannot be constructed from invalid cases" do
-    assert TestDU.from(Qqq) == nil
-    assert TestDU.from(Qqq, :no_such_case) == :no_such_case
-    assert_raise FunctionClauseError, "no function clause matching in TestDU.from!/1", fn ->
-      TestDU.from!(Qqq)
-    end
+  test "discriminated union can be constructed via dynamic constructors that construct at compile-time from valid cases" do
+    require TestDU
+    require TestDUa
 
-    assert TestDUa.from(:qqq) == nil
-    assert TestDUa.from(:qqq, :no_such_case) == :no_such_case
-    assert_raise FunctionClauseError, "no function clause matching in TestDUa.from!/1", fn ->
-      TestDUa.from!(:qqq)
+    asd_case = struct TestDU, %{case: Asd}
+    rty_case = struct TestDU, %{case: {Rty, 1, :ok}}
+    assert TestDU.asd == asd_case
+    assert TestDU.asd == TestDU.from(Asd)
+    assert TestDU.asd == TestDU.from!(Asd)
+    assert TestDU.rty(1, :ok) == rty_case
+    assert TestDU.rty(1, :ok) == TestDU.from({Rty, 1, :ok})
+    assert TestDU.rty(1, :ok) == TestDU.from!({Rty, 1, :ok})
+
+    asd_case = struct TestDUa, %{case: :asd}
+    rty_case = struct TestDUa, %{case: {:rty, 1, :ok}}
+    assert TestDUa.asd == asd_case
+    assert TestDUa.rty(1, :ok) == rty_case
+    assert TestDUa.rty(1, :ok) == TestDUa.from({:rty, 1, :ok})
+    assert TestDUa.rty(1, :ok) == TestDUa.from!({:rty, 1, :ok})
+  end
+
+  test "discriminated union's `from` constructor rises at compile-time for invalid cases" do
+    assert_raise UndefinedUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDU
+                        TestDU.from Qqq
+      end)
     end
+    assert_raise UndefinedUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        TestDUa.from :qqq
+      end)
+    end
+  end
+
+  test "discriminated union's `from!` constructor rises at run-time for invalid cases" do
+    assert_raise UndefinedUnionCaseError, fn ->
+      require TestDU
+      TestDU.from! Qqq
+    end
+    assert TestDU.from!(Qqq, :no_such_case) == :no_such_case
+
+    assert_raise UndefinedUnionCaseError, fn ->
+      require TestDUa
+      TestDUa.from! :qqq
+    end
+    assert TestDUa.from!(:qqq, :no_such_case) == :no_such_case
   end
 
   test "discriminated union's `case` macro should riase when condition is not evaluated to this discriminated union" do
@@ -318,7 +359,7 @@ defmodule DiscUnionTest do
     require TestDU
 
     c=Asd
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z=Qwe in _ -> z
@@ -327,7 +368,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={Qwe, 1}
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z=Qwe in _ -> z
@@ -336,7 +377,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={Rty, 1, 1}
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z=Qwe in _ -> z
@@ -348,7 +389,7 @@ defmodule DiscUnionTest do
     require TestDUa
 
     c=:asd
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z=:qwe in _ -> z
@@ -357,7 +398,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={:qwe, 1}
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z=:qwe in _ -> z
@@ -366,7 +407,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={:rty, 1, 1}
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z=:qwe in _ -> z
@@ -379,7 +420,7 @@ defmodule DiscUnionTest do
     require TestDU
 
     c=Asd
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z={Qwe, _} -> z
@@ -388,7 +429,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={Qwe, 1}
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z={Qwe, _} -> z
@@ -397,7 +438,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={Rty, 1, 1}
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z={Qwe, _} -> z
@@ -409,7 +450,7 @@ defmodule DiscUnionTest do
     require TestDUa
 
     c=:asd
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z={:qwe, _} -> z
@@ -418,7 +459,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={:qwe, 1}
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z={:qwe, _} -> z
@@ -427,7 +468,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={:rty, 1, 1}
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z={:qwe, _} -> z
@@ -550,7 +591,7 @@ defmodule DiscUnionTest do
     require TestDU
 
     c=Asd
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z=Qwe in x when x>0 -> z
@@ -559,7 +600,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={Qwe, 1}
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z=Qwe in x when x>0 -> z
@@ -568,7 +609,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={Rty, 1, 1}
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z=Qwe in x when x>0 -> z
@@ -580,7 +621,7 @@ defmodule DiscUnionTest do
     require TestDUa
 
     c=:asd
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z=:qwe in x when x>0 -> z
@@ -589,7 +630,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={:qwe, 1}
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z=:qwe in x when x>0 -> z
@@ -598,7 +639,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={:rty, 1, 1}
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z=:qwe in x when x>0 -> z
@@ -611,7 +652,7 @@ defmodule DiscUnionTest do
     require TestDU
 
     c=Asd
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z={Qwe, x} when x>0 -> z
@@ -620,7 +661,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={Qwe, 1}
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z={Qwe, x} when x>0 -> z
@@ -629,7 +670,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={Rty, 1, 1}
-    x=TestDU.from c
+    x=TestDU.from! c
     res=TestDU.case x do
                  z=Asd -> z
                  z={Qwe, x} when x>0 -> z
@@ -641,7 +682,7 @@ defmodule DiscUnionTest do
     require TestDUa
 
     c=:asd
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z={:qwe, x} when x>0 -> z
@@ -650,7 +691,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={:qwe, 1}
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z={:qwe, x} when x>0 -> z
@@ -659,7 +700,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     c={:rty, 1, 1}
-    x=TestDUa.from c
+    x=TestDUa.from! c
     res=TestDUa.case x do
                  z=:asd -> z
                  z={:qwe, x} when x>0 -> z
