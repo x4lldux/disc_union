@@ -31,7 +31,7 @@ end
 Type specs in `Circle` or `Rectangle` definitions are only for user description and have no influance on code nor are
 they used for any type checking - there is no typchecking other then checking if correct cases were used!
 
-When constructing a case, you have three options: `from/1` macro (compile-time checking), a dynamicaly built macro named
+When constructing a case (an union tag), you have three options: `from/1` macro (compile-time checking), a dynamicaly built macro named
 after union tag (in a camalized form, i.e. `Score`'s `Advantage` case, in tennis kata, would be available as
 `Score.advantage/2` macro and also with compile-time checking), and a `from!/` or `from!/2` functions (only run-time
 checking).
@@ -63,6 +63,18 @@ If `Game in _`, in `Tennis.score_point/2` functions, would be commented, compile
     (disc_union) example/tennis_kata.exs:64: Tennis.score_point/2
 
 ```
+
+You can also use a catch-all statment (_), like in a regular `case` macro (`Kernel.SpecialForms.case/2`), but here, it
+needs to be explicitly enabled by passing `allow_underscore: true` option to the macro:
+
+``` elixir
+Score.case score, allow_underscore: true do
+  Points in PlayerPoints.forty, PlayerPoints.forty -> Score.duce
+  _ -> score
+end
+```
+
+Otherwise you would see a smillar error like above.
 
 
 ## How it works
