@@ -35,6 +35,7 @@ defmodule Tennis do
     # Player A will always wins!
     # All hail the victor!
 
+    # Score.from! {Pointz, 1, 2}
     Score.zero_score
     |> Tennis.score_point(Player.a)
     |> Tennis.score_point(Player.a)
