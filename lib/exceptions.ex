@@ -29,10 +29,20 @@ defmodule MissingUnionCaseError do
     "#{tag} in #{args}"
   end
   defp format_case(c), do: c |> to_string
+
   def message(exception) do
-    cases = exception.cases
-    |> Enum.map(&format_case/1)
-    |> Enum.join(", ")
-    "not all defined union cases are used, should be all of: #{cases}"
+    if "_" in exception.cases do
+      cases = exception.cases
+      |> Enum.map(&format_case/1)
+      |> Enum.reject(&match?("_", &1))
+      |> Enum.join(", ")
+
+      "not all defined union cases are used, should be at least a catch all statement (_) and any combination of: #{cases}"
+    else
+      cases = exception.cases
+      |> Enum.map(&format_case/1)
+      |> Enum.join(", ")
+      "not all defined union cases are used, should be all of: #{cases}"
+    end
   end
 end

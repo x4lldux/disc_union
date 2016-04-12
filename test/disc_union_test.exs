@@ -729,10 +729,73 @@ defmodule DiscUnionTest do
                                end
       end)
     end
+    assert_raise UndefinedUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDU
+                        x=struct TestDU, case: Qqq
+                        TestDU.case x do
+                                 Wat -> :ok
+                               end
+      end)
+    end
+
+    assert_raise UndefinedUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        x=struct TestDUa, case: :qqq
+                        TestDUa.case x do
+                                 :wat -> :ok
+                               end
+      end)
+    end
+  end
+
+  test "discriminated union's `case` macro should riase on unknow tags and cases even whet `allow_underscore` is true" do
+    assert_raise UndefinedUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDU
+                        x=struct TestDU, case: Qqq
+                        TestDU.case x, allow_underscore: true do
+                                 Qwe -> :ok
+                               end
+      end)
+    end
+
+    assert_raise UndefinedUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        x=struct TestDUa, case: :qqq
+                        TestDUa.case x, allow_underscore: true do
+                                 :qwe -> :ok
+                               end
+      end)
+    end
+    assert_raise UndefinedUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDU
+                        x=struct TestDU, case: Qqq
+                        TestDU.case x, allow_underscore: true do
+                                 Wat -> :ok
+                               end
+      end)
+    end
+
+    assert_raise UndefinedUnionCaseError, fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        x=struct TestDUa, case: :qqq
+                        TestDUa.case x, allow_underscore: true do
+                                 :wat -> :ok
+                               end
+      end)
+    end
   end
 
   test "discriminated union's `case` macro should riase when not all cases are exhausted" do
-    assert_raise MissingUnionCaseError, fn ->
+    testdu_msg = "not all defined union cases are used, should be all of: Asd, Qwe in \"any\", Rty in \"integer\" * \"atom\""
+    testdua_msg = "not all defined union cases are used, should be all of: :asd, :qwe in \"any\", :rty in \"integer\" * \"atom\""
+
+    assert_raise MissingUnionCaseError, testdu_msg, fn ->
       Code.eval_quoted(quote do
                         require TestDU
                         x=struct TestDU, case: Asd
@@ -742,7 +805,7 @@ defmodule DiscUnionTest do
                                end
       end)
     end
-    assert_raise MissingUnionCaseError, fn ->
+    assert_raise MissingUnionCaseError, testdu_msg, fn ->
       Code.eval_quoted(quote do
                         require TestDU
                         x=struct TestDU, case: Asd
@@ -754,7 +817,7 @@ defmodule DiscUnionTest do
                                end
       end)
     end
-    assert_raise MissingUnionCaseError, fn ->
+    assert_raise MissingUnionCaseError, testdua_msg, fn ->
       Code.eval_quoted(quote do
                         require TestDUa
                         x=struct TestDUa, case: :asd
@@ -764,11 +827,61 @@ defmodule DiscUnionTest do
                                end
       end)
     end
-    assert_raise MissingUnionCaseError, fn ->
+    assert_raise MissingUnionCaseError, testdua_msg, fn ->
       Code.eval_quoted(quote do
                         require TestDUa
                         x=struct TestDUa, case: :asd
                         TestDUa.case x do
+                                 :asd -> :asd
+                                 :qwe in 1 -> :qwe
+                                 :qwe in x when x >2 -> :qwe
+                                 :qwe in _ -> :qwe
+                               end
+      end)
+    end
+  end
+
+  test "discriminated union's `case` macro should riase when not all cases are exhausted unless `allow_underscore` is set to true" do
+    testdu_msg = "not all defined union cases are used, should be at least a catch all statement (_) and any combination of: Asd, Qwe in \"any\", Rty in \"integer\" * \"atom\""
+    testdua_msg = "not all defined union cases are used, should be at least a catch all statement (_) and any combination of: :asd, :qwe in \"any\", :rty in \"integer\" * \"atom\""
+
+    assert_raise MissingUnionCaseError, testdu_msg, fn ->
+      Code.eval_quoted(quote do
+                        require TestDU
+                        x=struct TestDU, case: Asd
+                        TestDU.case x, allow_underscore: true do
+                                 Asd -> :asd
+                                 Qwe in _ -> :qwe
+                               end
+      end)
+    end
+    assert_raise MissingUnionCaseError, testdu_msg, fn ->
+      Code.eval_quoted(quote do
+                        require TestDU
+                        x=struct TestDU, case: Asd
+                        TestDU.case x, allow_underscore: true do
+                                 Asd -> :asd
+                                 Qwe in 1 -> :qwe
+                                 Qwe in x when x > 1 -> :qwe
+                                 Qwe in _ -> :qwe
+                               end
+      end)
+    end
+    assert_raise MissingUnionCaseError, testdua_msg, fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        x=struct TestDUa, case: :asd
+                        TestDUa.case x, allow_underscore: true do
+                                 :asd -> :asd
+                                 :qwe in _ -> :qwe
+                               end
+      end)
+    end
+    assert_raise MissingUnionCaseError, testdua_msg, fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        x=struct TestDUa, case: :asd
+                        TestDUa.case x, allow_underscore: true do
                                  :asd -> :asd
                                  :qwe in 1 -> :qwe
                                  :qwe in x when x >2 -> :qwe

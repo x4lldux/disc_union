@@ -36,14 +36,16 @@ defmodule DiscUnion do
         |> Enum.map(&Macro.to_string/1)
         |> List.to_tuple
         {union_tag |> canonical_union_tag, union_args |> length, str_case}
-      {union_tag, union_arg}              ->
+      {union_tag, union_arg} ->
         str_case = [union_tag, union_arg]
         |> Enum.map(&Macro.to_string/1)
         |> List.to_tuple
         {union_tag |> canonical_union_tag, 1, str_case}
-      union_tag                             -> {union_tag |> canonical_union_tag, 0, c |> Macro.to_string}
+      union_tag ->
+        {union_tag |> canonical_union_tag, 0, c |> Macro.to_string}
     end
   end
+  defp canonical_union_tag({:_, _, _}), do: {:_, 0}
   defp canonical_union_tag({:__aliases__, _, union_tag}), do: {:__aliases__, union_tag}
   defp canonical_union_tag(union_tag), do: union_tag
 
@@ -72,9 +74,23 @@ defmodule DiscUnion do
       # if not, err "you're using gaurds - can't trace if all paths are covered, fallback (_) is needed"
       # * guard means `when` gaurd or a binding
       defmacro case(expr, do: block) do
+                 do_case expr, [], do: block
+               end
+      defmacro case(expr, [allow_underscore: true], do: block) do
+                 IO.inspect block
+                 do_case expr, [allow_underscore: true], do: block
+               end
+      defmacro case(expr, opts, do: block) do
+                 do_case expr, [], do: block
+               end
+      defp do_case(expr, opts, do: block) do
+        opts = opts ++ [allow_underscore: false]
         mod = __MODULE__
+
+        allow_underscore = Keyword.get opts, :allow_underscore
+
         block = block
-        |> DiscUnion.transform_case_clauses(@cases_canonical)
+        |> DiscUnion.transform_case_clauses(@cases_canonical, allow_underscore)
 
         IO.puts "################################"
         IO.inspect expr
@@ -97,7 +113,12 @@ defmodule DiscUnion do
     end
   end
 
-  def transform_case_clauses(clauses, all_cases) do
+  def transform_case_clauses(clauses, all_cases, allow_underscore) do
+    underscore_canonical_case = Macro.var(:_, nil) |> canonical_form_of_case
+    if allow_underscore == true do
+      all_cases = all_cases ++ [underscore_canonical_case]
+    end
+
     {clauses, acc} = clauses
     |> Enum.map_reduce([], fn {:->, ctx, [clause | clause_body]}, acc ->
       # IO.puts "\n\ntransformed"
@@ -108,6 +129,7 @@ defmodule DiscUnion do
 
       transformed_clause
       |> DiscUnion.Util.Case.map_reduce_clauses(&check_for_unknown_case_clauses/2, {ctx, all_cases})
+
       # {_, acc}=transformed_clause |> check_for_missing_case_clauses(acc)
       {_, acc}=transformed_clause
       |> DiscUnion.Util.Case.map_reduce_clauses(&check_for_missing_case_clauses/2, acc)
@@ -116,14 +138,23 @@ defmodule DiscUnion do
       {{:->, ctx, [ transformed_clause | clause_body]}, acc}
     end)
 
-    if (length all_cases) > (length acc) do
+    underscore_semicanonical_case = cond do
+      {a, b, _} = underscore_canonical_case -> {a, b}
+    end
+    if (length all_cases) > (length acc) && not underscore_semicanonical_case in acc do
       try do
         raise "oops"
       rescue
         exception ->
           stacktrace = System.stacktrace
           if Exception.message(exception) == "oops" do
-            stacktrace = stacktrace |> Enum.drop(1)
+            stacktrace = stacktrace
+            |> Enum.drop_while(
+              fn {_, _, _, o} ->
+                Keyword.get(o, :file)
+                |> to_string
+                |> String.contains?(__ENV__.file |> Path.basename)
+              end)
             cases = all_cases |> Enum.map(&elem(&1, 2))
             reraise MissingUnionCaseError, [cases: cases], stacktrace
           end
@@ -160,7 +191,13 @@ defmodule DiscUnion do
           line = ctx |> Keyword.get(:line, nil)
           stacktrace = System.stacktrace
           if Exception.message(exception) == "oops" do
-            stacktrace = stacktrace |> Enum.drop(7)
+            stacktrace = stacktrace
+            |> Enum.drop_while(
+              fn {_, _, _, o} ->
+                Keyword.get(o, :file)
+                |> to_string
+                |> String.contains?(__ENV__.file |> Path.basename)
+              end)
             {_, union_args_count, str_form} = c |> canonical_form_of_case
             union_tag = case str_form do
                           x when is_tuple(x) -> x |> elem(0)
@@ -174,8 +211,8 @@ defmodule DiscUnion do
     {[c], acc}
   end
 
-  defp is_case_clause_known(canonical_union_tag, all_cases) do
-    {canonical_union_tag, canonical_union_args_count, _} = canonical_union_tag
+  defp is_case_clause_known(canonical_union, all_cases) do
+    {canonical_union_tag, canonical_union_args_count, _} = canonical_union
     IO.puts "is_case: #{inspect canonical_union_tag} #{inspect all_cases}"
     all_cases |> Enum.any?(fn {tag, args_count, _} ->
       {canonical_union_tag, canonical_union_args_count} == {tag, args_count}
@@ -224,7 +261,6 @@ defmodule DiscUnion do
           exception ->
             stacktrace = System.stacktrace
             if Exception.message(exception) == "oops" do
-              # IO.inspect stacktrace
               stacktrace = stacktrace |> Enum.drop(1)
               # {union_tag, union_args_count, _} = c |> DiscUnion.canonical_form_of_case
               {_, union_args_count, str_form} = c |> DiscUnion.canonical_form_of_case
