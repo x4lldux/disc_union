@@ -54,8 +54,8 @@ defmodule Tennis do
   end
 
   def normalize_score(%Score{}=score) do
-    case score do               # defualt case (_) is not implemented yet, need to be a regular `case` here
-      Score.points(PlayerPoints.forty, PlayerPoints.forty) -> Score.duce
+    Score.case score, allow_underscore: true do
+      Points in PlayerPoints.forty, PlayerPoints.forty -> Score.duce
       _ -> score
     end
   end
