@@ -19,7 +19,7 @@ defmodule MissingUnionCaseError do
   defexception [cases: nil]
 
   defp format_case(c) when is_atom(c) do
-    inspect c
+    to_string c
   end
   defp format_case(c) when is_tuple(c) do
     [tag | args] = c

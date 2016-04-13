@@ -7,4 +7,4 @@
  * [x] `case` macro should throw an error if not all cases are exhausted
  * [ ] remove debuging statements
  * [x] add constructor building for each union case and "bang" macros/functions for runtime checks
- * [ ] support catch-all statement (_) in `case` macro, but only when explicitly enabled
+ * [x] support catch-all statement (_) in `case` macro, but only when explicitly enabled
