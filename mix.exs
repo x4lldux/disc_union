@@ -5,6 +5,8 @@ defmodule DiscUnion.Mixfile do
     [app: :disc_union,
      version: "0.0.1",
      elixir: "~> 1.2",
+     test_coverage: [tool: ExCoveralls],
+     preferred_cli_env: ["coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps]
@@ -27,6 +29,6 @@ defmodule DiscUnion.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [{:excoveralls, "~> 0.4", only: [:test, :dev]}]
   end
 end
