@@ -69,7 +69,6 @@ defmodule DiscUnion.Utils do
     )
   end
 
-  # TODO: check why guards in is_only_atoms and is_unique are different!
   def is_unique?(cases) do
     unique_cases = cases
     |> Enum.map(
@@ -78,7 +77,10 @@ defmodule DiscUnion.Utils do
                   {:{}, _, [{:__aliases__, _, [x|_]}|_]} when is_atom x                      -> x
                   {:{}, _, [x|_]} when is_atom x                                             -> x
                   {{:__aliases__, _, [x|_]}, _} when is_tuple(x) and x |> elem(0) |> is_atom -> x |> elem(0)
-                  {x, _} when is_tuple(x) and x |> elem(0) |> is_atom                        -> x |> elem(0)
+                  {x, _} when is_atom x                                                      -> x # not really needed,
+                    # after transormation of cases, 2-tuples are converted in to n-tuples with two elemtns (in AST terms)
+                    # it's here just for symmetry with `is_only_atoms?/1`, which needs it, cause it's used in one other
+                    # place also.
                   x when is_atom x                                                           -> x
                 end)
     |> Enum.uniq
