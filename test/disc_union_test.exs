@@ -1,12 +1,12 @@
 defmodule TestDU do
   use DiscUnion
-  DiscUnion.defunion Asd
+  defunion Asd
   | Qwe in any
   | Rty in integer * atom
 end
 defmodule TestDUa do
   use DiscUnion
-  DiscUnion.defunion :asd
+  defunion :asd
   | :qwe in any
   | :rty in integer * atom
 end
@@ -23,21 +23,21 @@ defmodule DiscUnionTest do
   test "discriminated union can have many case tags" do
     Code.eval_quoted(quote do
                       defmodule TestA do
-                        require DiscUnion
-                        DiscUnion.defunion Asd | Qwe
+                        use DiscUnion
+                        defunion Asd | Qwe
                       end
     end)
     Code.eval_quoted(quote do
                       defmodule TestB do
-                        require DiscUnion
-                        DiscUnion.defunion :asd | :qwe
+                        use DiscUnion
+                        defunion :asd | :qwe
                       end
     end)
 
     Code.eval_quoted(quote do
                       defmodule TestC do
-                        require DiscUnion
-                        DiscUnion.defunion Asd
+                        use DiscUnion
+                        defunion Asd
                         | Qwe
                         | Rty
                         | Zxc
@@ -45,8 +45,8 @@ defmodule DiscUnionTest do
     end)
     Code.eval_quoted(quote do
                       defmodule TestD do
-                        require DiscUnion
-                        DiscUnion.defunion :asd
+                        use DiscUnion
+                        defunion :asd
                         | :qwe
                         | :rtyq
                         | :zxc
@@ -57,8 +57,8 @@ defmodule DiscUnionTest do
   test "discriminated union case tags can have multiple arguments" do
     Code.eval_quoted(quote do
                       defmodule TestA do
-                        require DiscUnion
-                        DiscUnion.defunion Asd
+                        use DiscUnion
+                        defunion Asd
                         | Qwe in any
                         | Rty in integer * atom
                         | Zxc in integer * String.t * String.t
@@ -68,8 +68,8 @@ defmodule DiscUnionTest do
     end)
     Code.eval_quoted(quote do
                       defmodule TestB do
-                        require DiscUnion
-                        DiscUnion.defunion :asd
+                        use DiscUnion
+                        defunion :asd
                         | :qwe in any
                         | :rty in integer * atom
                         | :zxc in integer * String.t * String.t
@@ -83,8 +83,8 @@ defmodule DiscUnionTest do
     assert_raise ArgumentError, "union case tag must be an atom", fn ->
       Code.eval_quoted(quote do
                         defmodule TestA do
-                          require DiscUnion
-                          DiscUnion.defunion 1 | 2
+                          use DiscUnion
+                          defunion 1 | 2
                         end
       end)
     end
@@ -92,8 +92,8 @@ defmodule DiscUnionTest do
     assert_raise ArgumentError, "union case tag must be an atom", fn ->
       Code.eval_quoted(quote do
                         defmodule TestB do
-                          require DiscUnion
-                          DiscUnion.defunion 1 | 2 in any
+                          use DiscUnion
+                          defunion 1 | 2 in any
                         end
       end)
     end
@@ -101,8 +101,8 @@ defmodule DiscUnionTest do
     assert_raise ArgumentError, "union case tag must be an atom", fn ->
       Code.eval_quoted(quote do
                         defmodule TestC do
-                          require DiscUnion
-                          DiscUnion.defunion 1 | 2 in any*any
+                          use DiscUnion
+                          defunion 1 | 2 in any*any
                         end
       end)
     end
@@ -112,16 +112,16 @@ defmodule DiscUnionTest do
     assert_raise ArgumentError, "union case tag must be unique", fn ->
       Code.eval_quoted(quote do
                         defmodule TestA do
-                          require DiscUnion
-                          DiscUnion.defunion Asd | Asd
+                          use DiscUnion
+                          defunion Asd | Asd
                         end
       end)
     end
     assert_raise ArgumentError, "union case tag must be unique", fn ->
       Code.eval_quoted(quote do
                         defmodule TestB do
-                          require DiscUnion
-                          DiscUnion.defunion :asd | :asd
+                          use DiscUnion
+                          defunion :asd | :asd
                         end
       end)
     end
@@ -129,16 +129,16 @@ defmodule DiscUnionTest do
     assert_raise ArgumentError, "union case tag must be unique", fn ->
       Code.eval_quoted(quote do
                         defmodule TestC do
-                          require DiscUnion
-                          DiscUnion.defunion Asd | Asd in any
+                          use DiscUnion
+                          defunion Asd | Asd in any
                         end
       end)
     end
     assert_raise ArgumentError, "union case tag must be unique", fn ->
       Code.eval_quoted(quote do
                         defmodule TestD do
-                          require DiscUnion
-                          DiscUnion.defunion :asd | :asd in any
+                          use DiscUnion
+                          defunion :asd | :asd in any
                         end
       end)
     end
@@ -146,16 +146,16 @@ defmodule DiscUnionTest do
     assert_raise ArgumentError, "union case tag must be unique", fn ->
       Code.eval_quoted(quote do
                         defmodule TestE do
-                          require DiscUnion
-                          DiscUnion.defunion Asd | Asd in any*any
+                          use DiscUnion
+                          defunion Asd | Asd in any*any
                         end
       end)
     end
     assert_raise ArgumentError, "union case tag must be unique", fn ->
       Code.eval_quoted(quote do
                         defmodule TestF do
-                          require DiscUnion
-                          DiscUnion.defunion :asd | :asd in any*any
+                          use DiscUnion
+                          defunion :asd | :asd in any*any
                         end
       end)
     end
