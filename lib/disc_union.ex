@@ -1,8 +1,9 @@
 defmodule DiscUnion do
 
   defmacro __using__(opts) do
-    if true==Keyword.get opts, :constructors do
-      Module.put_attribute(__CALLER__.module, :constructors, true)
+    opts = opts ++ [dyn_constructors: true]
+    if true == Keyword.get opts, :dyn_constructors do
+      Module.put_attribute(__CALLER__.module, :dyn_constructors, true)
     end
 
     quote do
@@ -109,7 +110,7 @@ defmodule DiscUnion do
         end
       end
 
-      DiscUnion.build_from_functions __MODULE__, all_cases
+      DiscUnion.build_constructor_functions __MODULE__, all_cases
     end
   end
 
@@ -229,7 +230,7 @@ defmodule DiscUnion do
     {[c], used_cases}
   end
 
-  defmacro build_from_functions(mod, cases) do
+  defmacro build_constructor_functions(mod, cases) do
     quote bind_quoted: [cases: cases, mod: mod] do
       cases
       |> DiscUnion.build_match_ast
@@ -273,33 +274,34 @@ defmodule DiscUnion do
         end
       end
 
-      cases
-      |> Enum.map(fn
-        x when is_atom x ->
-          {x, 0}
-        x when is_tuple(x) and x |> elem(0) |> is_atom ->
-          {x |> elem(0), tuple_size(x)-1 }
-      end)
-      |> Enum.map(fn {c, count} ->
-        case c |> to_string do
-          "Elixir." <> m ->
-            c={:__aliases__,  [], [m |> String.to_atom]} |> Macro.escape
-            {m |> Macro.underscore |> String.to_atom, c, count}
-          _ ->
-            {c |> to_string |> Macro.underscore |> String.to_atom, c, count}
-        end
-      end)
-      |> Enum.map(fn            # HACK: too many quotes and unquotes. only solutions I could up to combine quoted and unquoted expression
-        {c, orig_c, 0} ->
-          defmacro unquote(c)() do
-            # from!(unquote(orig_c))
-            # |> Macro.expand(__ENV__)
-            # |> Macro.escape
-            {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: unquote(orig_c)]}]}
+      if true == Module.get_attribute __MODULE__, :dyn_constructors do
+        cases
+        |> Enum.map(fn
+          x when is_atom x ->
+            {x, 0}
+          x when is_tuple(x) and x |> elem(0) |> is_atom ->
+            {x |> elem(0), tuple_size(x)-1 }
+        end)
+        |> Enum.map(fn {c, count} ->
+          case c |> to_string do
+            "Elixir." <> m ->
+              c={:__aliases__,  [], [m |> String.to_atom]} |> Macro.escape
+              {m |> Macro.underscore |> String.to_atom, c, count}
+            _ ->
+              {c |> to_string |> Macro.underscore |> String.to_atom, c, count}
           end
+        end)
+        |> Enum.map(fn            # HACK: too many quotes and unquotes. only solutions I could up to combine quoted and unquoted expression
+          {c, orig_c, 0} ->
+        defmacro unquote(c)() do
+          # from!(unquote(orig_c))
+          # |> Macro.expand(__ENV__)
+          # |> Macro.escape
+          {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: unquote(orig_c)]}]}
+        end
 
-        {c, orig_c, count} ->
-          args = 1..count |> Enum.map(&(Macro.var("v#{&1}" |> String.to_atom, nil)))
+          {c, orig_c, count} ->
+            args = 1..count |> Enum.map(&(Macro.var("v#{&1}" |> String.to_atom, nil)))
           defmacro unquote(c)(unquote_splicing(args)) do
             tuple = {:{}, [], [unquote(orig_c)  | unquote(args)]}
             # __MODULE__.from!(tuple)
@@ -307,7 +309,8 @@ defmodule DiscUnion do
             # |> Macro.escape
             {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: tuple]}]}
           end
-      end)
+        end)
+      end
     end
   end
 

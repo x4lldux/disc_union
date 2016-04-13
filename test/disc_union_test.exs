@@ -1,14 +1,19 @@
 defmodule TestDU do
-  require DiscUnion
+  use DiscUnion
   DiscUnion.defunion Asd
   | Qwe in any
   | Rty in integer * atom
 end
 defmodule TestDUa do
-  require DiscUnion
+  use DiscUnion
   DiscUnion.defunion :asd
   | :qwe in any
   | :rty in integer * atom
+end
+defmodule TestDUdc do
+  use DiscUnion, dyn_constructors: false
+
+  defunion A | B | C
 end
 
 defmodule DiscUnionTest do
@@ -194,6 +199,15 @@ defmodule DiscUnionTest do
     assert TestDUa.rty(1, :ok) == rty_case
     assert TestDUa.rty(1, :ok) == TestDUa.from({:rty, 1, :ok})
     assert TestDUa.rty(1, :ok) == TestDUa.from!({:rty, 1, :ok})
+  end
+
+  test "discriminated union's dynamic constructors should not be created when `dyn_constructors` is false" do
+    assert_raise UndefinedFunctionError, "undefined function TestDUdc.a/0", fn ->
+      Code.eval_quoted(quote do
+                        require TestDUdc
+                        TestDUdc.a
+      end)
+    end
   end
 
   test "discriminated union's `from` constructor rises at compile-time for invalid cases" do

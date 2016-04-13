@@ -31,10 +31,15 @@ end
 Type specs in `Circle` or `Rectangle` definitions are only for user description and have no influance on code nor are
 they used for any type checking - there is no typchecking other then checking if correct cases were used!
 
-When constructing a case (an union tag), you have three options: `from/1` macro (compile-time checking), a dynamicaly built macro named
-after union tag (in a camalized form, i.e. `Score`'s `Advantage` case, in tennis kata, would be available as
-`Score.advantage/2` macro and also with compile-time checking), and a `from!/` or `from!/2` functions (only run-time
-checking).
+When constructing a case (an union tag), you have three options:
+
+ * `from/1` macro (compile-time checking),
+ * `from!/` or `from!/2` functions (only run-time checking).
+ * a dynamicaly built macro named after union tag (in a camalized form, i.e. `Score`'s `Advantage` case, in tennis kata,
+ would be available as `Score.advantage/2` macro and also with compile-time checking),
+
+If you would do `use DiscUnion, dyn_constructors: false`, dynamic constructos would not be built.
+
 
 If `Score.from {Pointz, 1, 2}` be placed somwhere in `run_test_match/0` function, in tennis kata, compiler would throw
 this error:
