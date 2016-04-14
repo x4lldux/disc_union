@@ -211,16 +211,28 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union's `from` constructor rises at compile-time for invalid cases" do
-    assert_raise UndefinedUnionCaseError, fn ->
+    assert_raise UndefinedUnionCaseError, "undefined union case: Qqq", fn ->
       Code.eval_quoted(quote do
                         require TestDU
                         TestDU.from Qqq
       end)
     end
-    assert_raise UndefinedUnionCaseError, fn ->
+    assert_raise UndefinedUnionCaseError, "undefined union case: Qqq in _", fn ->
+      Code.eval_quoted(quote do
+                        require TestDU
+                        TestDU.from {Qqq, 123}
+      end)
+    end
+    assert_raise UndefinedUnionCaseError, "undefined union case: :qqq", fn ->
       Code.eval_quoted(quote do
                         require TestDUa
                         TestDUa.from :qqq
+      end)
+    end
+    assert_raise UndefinedUnionCaseError, "undefined union case: :qqq in _", fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        TestDUa.from {:qqq, 123}
       end)
     end
   end
