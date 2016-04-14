@@ -8,3 +8,4 @@
  * [x] remove debuging statements
  * [x] add constructor building for each union case and "bang" macros/functions for runtime checks
  * [x] support catch-all statement (_) in `case` macro, but only when explicitly enabled
+ * [ ] add documentation and specs for functions & macros
