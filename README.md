@@ -19,7 +19,7 @@ library.
 To define a discriminated union, `defunion` macro is used:
 
 ``` elixir
-defmodule ShapeArea do
+defmodule Shape do
     use DiscUnion
 
     defunion Point
@@ -89,12 +89,12 @@ for matching in function deffinitions, altough it will not look as clearly as a 
 union.
 
 
-The `ShapeArea` union creates a `%ShapeArea{}` struct with current active case held in `case` field and all possible
+The `Shape` union creates a `%Shape{}` struct with current active case held in `case` field and all possible
 cases held in `cases` field:
 
 ``` elixir
-%ShapeArea{case: Point} = ShapeArea.point
-%ShapeArea{case: {Circle, :foo}} = ShapeArea.circle(:foo)
+%Shape{case: Point} = Shape.point
+%Shape{case: {Circle, :foo}} = Shape.circle(:foo)
 ```
 
 Cases that have arguments are just tuples; n-argument union case is a n+1-tuple with a case tag as it's first element.
@@ -122,6 +122,24 @@ defmodule Test do
 end
 ```
 Since cases are just a tuples, they can be used also used as a clause for `case` macro. Matching and gaurds also works!
+
+### Side note
+
+It is possible to place discriminated union's constructor macros in function definition:
+
+``` elixir
+defmodule ShapeArea do
+    require Shape
+
+    def calc_area(Shape.point), do: 0
+    def calc_area(Shape.circle(r)), do: :math.pi*r*r
+end
+```
+
+And even use natural Elixir's multi-fun capability, to build logic, like in `score_point/2` function in tennis kata
+example. Although, placing constructors inside of function definition is not a bad thing, and being able to do so is a
+clear WIN! Using this technique to build business logic, instead of using discriminated union's `case` macro, is not
+encouraged because nothing checks if all union cases were covered.
 
 
 ## Installation
