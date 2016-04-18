@@ -21,8 +21,7 @@ defmodule Score do
 
   def zero_score do
     love=PlayerPoints.love
-  # Score.points love, love     # TODO: investigate why function is unknown
-    Score.from! {Points, love, love}
+    Score.points love, love
   end
 end
 
