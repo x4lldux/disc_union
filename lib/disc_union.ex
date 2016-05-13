@@ -81,26 +81,29 @@ defmodule DiscUnion do
       {a, b, _} = underscore_canonical_case -> {a, b}
     end
 
-    if allow_underscore == true do
-      all_cases = all_cases ++ [underscore_canonical_case]
+    all_union_cases = if allow_underscore == true do
+      all_union_cases ++ [underscore_canonical_case]
+    else
+      all_union_cases
     end
 
     {clauses, acc} = clauses
-    |> Enum.map_reduce([], fn {:->, ctx, [clause | clause_body]}, acc ->
-      {transformed_clause, _} = clause
-      |> DiscUnion.Utils.Case.map_reduce_clauses(&transform_case_clause/2, [])
+    |> Enum.map_reduce([],
+      fn {:->, ctx, [clause | clause_body]}, acc ->
+        {transformed_clause, _} = clause
+        |> DiscUnion.Utils.Case.map_reduce_clauses(&transform_case_clause/2, [])
 
-      transformed_clause
-      |> DiscUnion.Utils.Case.map_reduce_clauses(&check_for_unknown_case_clauses/2, {ctx, all_cases})
+        _ = transformed_clause
+        |> DiscUnion.Utils.Case.map_reduce_clauses(&check_for_unknown_case_clauses/2, {ctx, all_union_cases})
 
-      {_, acc}=transformed_clause
-      |> DiscUnion.Utils.Case.map_reduce_clauses(&extract_used_case_clauses/2, acc)
+        {_, acc}=transformed_clause
+        |> DiscUnion.Utils.Case.map_reduce_clauses(&extract_used_case_clauses/2, acc)
 
-      {{:->, ctx, [ transformed_clause | clause_body]}, acc}
+        {{:->, ctx, [ transformed_clause | clause_body]}, acc}
     end)
 
-    if (length all_cases) > (length acc) && not underscore_semicanonical_case in acc do
-      DiscUnion.Utils.Case.raise_missing_union_case all_cases
+    if (length all_union_cases) > (length acc) && not underscore_semicanonical_case in acc do
+      DiscUnion.Utils.Case.raise_missing_union_case all_union_cases
     end
 
     clauses
