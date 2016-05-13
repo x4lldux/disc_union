@@ -93,7 +93,7 @@ defmodule Tennis do
 
   defp normalize_score(%Score{}=score) do
     Score.case score, allow_underscore: true do
-      Points in PlayerPoints.forty, PlayerPoints.forty -> Score.duce
+      Points in PlayerPoints.forty, PlayerPoints.forty -> Score.deuce
       _ -> score
     end
   end
