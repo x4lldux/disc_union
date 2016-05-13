@@ -1,7 +1,7 @@
 defmodule DiscUnion.Utils do
   @moduledoc false
 
-  @spec canonical_form_of_union_case(Macro.expr) :: {DiscUnion.union_tag, non_neg_integer, any}
+  @spec canonical_form_of_union_case(Macro.expr) :: {DiscUnion.canonical_union_tag, non_neg_integer, any}
   def canonical_form_of_union_case(c) do
     case c do
       {:{}, _ctx, [union_tag | union_args]} ->
@@ -19,11 +19,12 @@ defmodule DiscUnion.Utils do
     end
   end
 
-  @spec canonical_union_tag(Macro.expr) :: DiscUnion.union_tag
+  @spec canonical_union_tag(Macro.expr) :: DiscUnion.canonical_union_tag
   defp canonical_union_tag({:_, _, _}), do: {:_, 0}
   defp canonical_union_tag({:__aliases__, _, union_tag}), do: {:__aliases__, union_tag}
   defp canonical_union_tag(union_tag), do: union_tag
 
+  @spec extract_union_case_definitions(Macro.expr) :: [Macro.t]
   def extract_union_case_definitions(x) do
     extract_union_case_definitions(x, []) |> Enum.reverse
   end
@@ -39,6 +40,7 @@ defmodule DiscUnion.Utils do
     [other | acc]
   end
 
+  @spec unstar(Macro.expr) :: [Macro.t]
   defp unstar(expr) do
     unstar(expr, []) |> Enum.reverse
   end
@@ -49,7 +51,7 @@ defmodule DiscUnion.Utils do
     [other |> Macro.to_string | acc]
   end
 
-
+  @spec is_cases_valid?([Macro.expr]) :: :ok | {:error, :not_atoms} | {:error, :not_unique}
   def is_cases_valid?(cases) do
     cond do
       not is_only_atoms? cases -> {:error, :not_atoms}
@@ -58,6 +60,7 @@ defmodule DiscUnion.Utils do
     end
   end
 
+  @spec is_only_atoms?([Macro.expr]) :: boolean
   def is_only_atoms?(cases) do
     cases
     |> Enum.all?(
@@ -73,6 +76,7 @@ defmodule DiscUnion.Utils do
     )
   end
 
+  @spec is_unique?([Macro.expr]) :: boolean
   def is_unique?(cases) do
     unique_cases = cases
     |> Enum.map(
@@ -97,6 +101,7 @@ defmodule DiscUnion.Utils do
   When is a single atom, AST looks the same. For tuples, first argument (union tag) is saved, but rest is replaced
   with underscore `_` to match anything.
   """
+  @spec build_match_ast([Macro.expr]) :: [Macro.expr]
   def build_match_ast(cases) do
     # cases=cases |> Macro.escape
     # cases |> IO.inspect
@@ -112,10 +117,11 @@ defmodule DiscUnion.Utils do
         {:{}, ctx, [c |cs]}
       {c, _} when c |> is_atom -> # 2-tuple
         cs = [quote do: _]
-      {:{}, [], [c | cs ]}
+        {:{}, [], [c | cs ]}
     end)
   end
 
+  @spec build_spec_ast([Macro.expr]) :: [Macro.expr]
   def build_spec_ast(cases) do
     cases
     |> Enum.map(&Macro.escape/1)
@@ -133,6 +139,7 @@ defmodule DiscUnion.Utils do
     end)
   end
 
+  @spec module_name(atom) :: String.t
   def module_name(module) do
     case module |> to_string do
       "Elixir." <> m -> m
