@@ -7,7 +7,7 @@ defmodule DiscUnion do
 
     quote do
       require DiscUnion
-      require __MODULE__
+      # require __MODULE__
       import DiscUnion, only: [defunion: 1]
     end
   end
