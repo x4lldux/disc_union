@@ -1,4 +1,8 @@
 defmodule DiscUnion do
+  @type case_clause :: {:->, [{atom, any}], [any]}
+  @type case_clauses :: [case_clause]
+  @type union_tag :: {:_, 0} | {:__aliases__, atom} | atom
+
   defmacro __using__(opts) do
     opts = opts ++ [dyn_constructors: true]
     if true == Keyword.get opts, :dyn_constructors do
@@ -52,6 +56,8 @@ defmodule DiscUnion do
       defmacro case(expr, opts, do: block) do
                  do_case expr, [], do: block
                end
+
+      @spec do_case(Macro.t, Keyword.t, [do: DiscUnion.case_clauses]) :: Macro.t
       defp do_case(expr, opts, do: block) do
         opts = opts ++ [allow_underscore: false]
         mod = __MODULE__
@@ -75,7 +81,8 @@ defmodule DiscUnion do
     end
   end
 
-  def transform_case_clauses(clauses, all_cases, allow_underscore) do
+  @spec transform_case_clauses(case_clauses, term, boolean) :: case_clauses
+  def transform_case_clauses(clauses, all_union_cases, allow_underscore) do
     underscore_canonical_case = Macro.var(:_, nil) |> DiscUnion.Utils.canonical_form_of_union_case
     underscore_semicanonical_case = cond do
       {a, b, _} = underscore_canonical_case -> {a, b}
@@ -122,7 +129,8 @@ defmodule DiscUnion do
     {c, acc}
   end
 
-  defp check_for_unknown_case_clauses([c], acc={ctx, all_cases}) do
+  @spec check_for_unknown_case_clauses(Macro.t, any) :: {Macro.t, any}
+  defp check_for_unknown_case_clauses([c], acc={_ctx, all_cases}) do
     known? = c
     |> DiscUnion.Utils.canonical_form_of_union_case
     |> is_case_clause_known?(all_cases)

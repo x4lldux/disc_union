@@ -1,9 +1,9 @@
 defmodule DiscUnion.Utils.Case do
 
-  @spec map_reduce_clauses(list(Macro.t), any, (list(Macro.expr), Keyword.t, any -> {Macro.t, any})) :: any
-  def map_reduce_clauses(clause, f, acc) do
-    {clause, {_, acc}} = clause |> map_reduce_clause({f, acc})
-    {clause, acc}
+  @spec map_reduce_clauses(DiscUnion.case_clauses, (list(Macro.expr), any -> {Macro.expr, any}), any) :: {DiscUnion.case_clauses, any}
+  def map_reduce_clauses(clauses, f, acc) do
+    {clauses, {_, acc}} = clauses |> map_reduce_clause({f, acc})
+    {clauses, acc}
   end
 
   defp map_reduce_clause([{:=, ctx, [ bind, precond ]} | rest_of_union_args], {f, acc}) do
