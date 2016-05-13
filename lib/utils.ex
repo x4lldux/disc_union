@@ -103,12 +103,36 @@ defmodule DiscUnion.Utils do
         x
       {op, ctx, [c | cs]} when op in [:{}, :__aliases__] and is_atom(c) ->
         cs = cs |> Enum.map(fn _ ->
-        quote do: _
-      end)
-      {:{}, ctx, [c |cs]}
+          quote do: _
+        end)
+        {:{}, ctx, [c |cs]}
       {c, _} when c |> is_atom -> # 2-tuple
         cs = [quote do: _]
       {:{}, [], [c | cs ]}
     end)
+  end
+
+  def build_spec_ast(cases) do
+    cases
+    |> Enum.map(&Macro.escape/1)
+    |> Enum.map(fn
+      x when is_atom(x) ->
+        x
+      {op, ctx, [c | cs]} when op in [:{}, :__aliases__] and is_atom(c) ->
+        cs = cs |> Enum.map(fn _ ->
+          quote do: any
+        end)
+        {:{}, ctx, [c |cs]}
+      {c, _} when c |> is_atom -> # 2-tuple
+        cs = [quote do: any]
+        {:{}, [], [c | cs ]}
+    end)
+  end
+
+  def module_name(module) do
+    case module |> to_string do
+      "Elixir." <> m -> m
+      m              -> m
+    end
   end
 end
