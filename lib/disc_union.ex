@@ -11,7 +11,6 @@ defmodule DiscUnion do
 
     quote do
       require DiscUnion
-      # require __MODULE__
       import DiscUnion, only: [defunion: 1]
     end
   end
@@ -35,8 +34,8 @@ defmodule DiscUnion do
     quote location: :keep, unquote: true do
       all_cases=unquote(cases)
 
-      @opaque t :: %__MODULE__{}
-      defstruct case: [], cases: all_cases
+      @type t :: %__MODULE__{}
+      defstruct case: []
 
       defimpl Inspect do
         import Inspect.Algebra
@@ -45,6 +44,11 @@ defmodule DiscUnion do
           mod=@for |> Module.split
           concat ["##{mod}<", Inspect.inspect(union.case, opts), ">"]
         end
+      end
+
+      @doc "Returns a list with all acceptable union cases."
+      def __union_cases__ do
+        unquote(cases)
       end
 
       defmacro case(expr, do: block) do
