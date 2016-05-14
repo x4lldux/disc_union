@@ -28,8 +28,8 @@ defmodule Shape do
 end
 ```
 
-Type specs in `Circle` or `Rectangle` definitions are only for user description and have no influance on code nor are
-they used for any type checking - there is no typchecking other then checking if correct cases were used!
+Type specs in `Circle` or `Rectangle` definitions are only for description and have no influance on code nor are they
+used for any type checking - there is no typchecking other then checking if correct cases were used!
 
 When constructing a case (an union tag), you have three options:
 
@@ -90,7 +90,7 @@ union.
 
 
 The `Shape` union creates a `%Shape{}` struct with current active case held in `case` field and all possible
-cases held in `cases` field:
+cases can be get by `Shape.__union_cases__/0` function:
 
 ``` elixir
 %Shape{case: Point} = Shape.point

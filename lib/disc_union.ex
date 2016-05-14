@@ -1,4 +1,17 @@
 defmodule DiscUnion do
+  @moduledoc """
+  Discriminated unions for Elixir.
+
+  Allows for building data structure with a closed set of representations/cases as an alternative for a tuple+atom combo.
+  Provides macros and functions for creating and matching on datastructres which throw compile-time and run-time
+  exceptions if an unknow case was used or not all cases were covered in a match. It's inspired by ML/OCaml/F# way of
+  building discriminated unions. Unfortunately, Elixir does not support such a strong typing and this library will not
+  solve this. This library allows to easly catch common mistakes at compile-time instead of run-time (those can be
+  sometimes hard to detect).
+
+  To use it, you need to add:  `use DiscUnion` to your module.
+  """
+
   @type case_clause :: {:->, [{atom, any}], [any]}
   @type case_clauses :: [case_clause]
   @type canonical_union_tag :: {:_, 0} | {:__aliases__, atom} | atom
@@ -15,6 +28,77 @@ defmodule DiscUnion do
     end
   end
 
+  @doc """
+  Defines a discriminated union. Use `|` to separate union cases from each other. Union cases can have arguments and a
+  `*` can be used to combine several arguments. Underneath, it's just a struct with union cases represented as atoms and
+  tuples.
+  Type specs in definitions are only for description and have no influance on code nor are they used for any type
+  checking - there is no typchecking other then checking if correct cases were used!
+
+
+  ## Usage
+  To define a discriminated union `Shape` with cases of `Point`, `Circle` and `Rectangle`:
+  ``` elixir
+  defmodule Shape do
+  use DiscUnion
+
+  defunion Point
+  | Circle in float()
+  | Rectangle in any * any
+  end
+  ```
+
+  When constructing a case (an union tag), you have three options:
+
+  * `from/1` macro (compile-time checking),
+  * `from!/` or `from!/2` functions (only run-time checking).
+  * a dynamicaly built macro named after union tag (in a camalized form, i.e. `Shape`'s `Circle` case, would be
+  available as `Shape.circle/1` macro and also with compile-time checking),
+
+  If you would do `use DiscUnion, dyn_constructors: false`, dynamic constructos would not be built.
+
+
+  ## How it works
+
+  Underneath, it's just a module containg a struct with tuples and some dynamicly built macros. This property can be used
+  for matching in function deffinitions, altough it will not look as clearly as a `case` macro built for a discriminated
+  union.
+
+
+  The `Shape` union creates a `%Shape{}` struct with current active case held in `case` field and all possible
+  cases can be get by `Shape.__union_cases__/0` function:
+
+  ``` elixir
+  %Shape{case: Point} = Shape.point
+  %Shape{case: {Circle, :foo}} = Shape.circle(:foo)
+  ```
+
+  Cases that have arguments are just tuples; n-argument union case is a n+1-tuple with a case tag as it's first element.
+  This should work seamlessly with existing convections:
+
+  ``` elixir
+  defmodule Result do
+    use DiscUnion
+
+    defunion :ok in any | :error in String.t
+  end
+
+  defmodule Test do
+      require Result
+
+      def run(file) do
+          res = Result.from! File.open(file)
+          Result.case res do
+              r={:ok, io_dev}                       -> {:yey, r, io_dev}
+              :error in reason when reason==:eacces -> :too_much_protections
+              :error in :enoent                     -> :why_no_file
+              :error in _reason                     -> :ney
+          end
+      end
+  end
+  ```
+  Since cases are just a tuples, they can be used also used as a clause for `case` macro. Matching and gaurds also works!
+  """
   defmacro defunion(expr) do
     cases = DiscUnion.Utils.extract_union_case_definitions(expr)
 
@@ -51,6 +135,10 @@ defmodule DiscUnion do
         unquote(cases)
       end
 
+      @doc """
+      Matches the given expression against the given clauses. The expressions needs to be evaluate to
+      `%#{DiscUnion.Utils.module_name __MODULE__}{}`.
+      """
       defmacro case(expr, do: block) do
                  do_case expr, [], do: block
                end
