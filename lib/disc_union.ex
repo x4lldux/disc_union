@@ -263,8 +263,8 @@ defmodule DiscUnion do
       |> Enum.each(fn {c, s} ->
         @spec from!(unquote(s)) :: %__MODULE__{case: unquote(s)}
         @doc """
-        Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union. This works at run-time, to have a compile-time
-        guarantees, use `#{mod}.from/1` macro.
+        Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union. This works at run-time, to
+        have a compile-time guarantees, use `#{mod}.from/1` macro.
         When an undefined union case is supplied it will raise an error at run-time.
         """
         def from!( x=unquote(c) ) do
@@ -272,8 +272,8 @@ defmodule DiscUnion do
         end
         @spec from!(unquote(s), any) :: %__MODULE__{case: unquote(s)}
         @doc """
-        Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union. This works at run-time, to have a compile-time
-        guarantees, use `#{DiscUnion.Utils.module_name mod}.from/1` macro.
+        Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union. This works at run-time, to
+        have a compile-time guarantees, use `#{DiscUnion.Utils.module_name mod}.from/1` macro.
         When an undefined union case is supplied it will return second argument.
         """
         def from!( x=unquote(c), _) do
@@ -282,8 +282,8 @@ defmodule DiscUnion do
       end)
 
       @doc """
-      Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union. Works at compile-time and will raise an error when
-      unknown union case is used.
+      Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union. Works at compile-time and
+      will raise an error when unknown union case is used.
       """
       defmacro from(c) do
         case [c] |> DiscUnion.Utils.is_only_atoms? do
@@ -324,8 +324,8 @@ defmodule DiscUnion do
                                  # unquoted expression
           {c, orig_c, 0, case_tag_str} ->
             @doc """
-            Constructs a valid `#{case_tag_str}` case for `#{DiscUnion.Utils.module_name mod}` discriminated union. Works at
-            compile-time and will raise an error when unknown union case is used.
+            Constructs a valid `#{case_tag_str}` case for `#{DiscUnion.Utils.module_name mod}` discriminated union.
+            Works at compile-time and will raise an error when unknown union case is used.
             """
             defmacro unquote(c)() do
               # from!(unquote(orig_c))
@@ -337,8 +337,8 @@ defmodule DiscUnion do
           {c, orig_c, count, case_tag_str} ->
             args = 1..count |> Enum.map(&(Macro.var("v#{&1}" |> String.to_atom, nil)))
             @doc """
-            Constructs a valid `#{case_tag_str}` case for `#{DiscUnion.Utils.module_name mod}` discriminated union. Works at
-            compile-time and will raise an error when unknown union case is used.
+            Constructs a valid `#{case_tag_str}` case for `#{DiscUnion.Utils.module_name mod}` discriminated union.
+            Works at compile-time and will raise an error when unknown union case is used.
             """
             defmacro unquote(c)(unquote_splicing(args)) do
               tuple = {:{}, [], [unquote(orig_c)  | unquote(args)]}
