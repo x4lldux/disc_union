@@ -43,11 +43,11 @@ defmodule DiscUnion do
   To define a discriminated union `Shape` with cases of `Point`, `Circle` and `Rectangle`:
   ``` elixir
   defmodule Shape do
-  use DiscUnion
+    use DiscUnion
 
-  defunion Point
-  | Circle in float()
-  | Rectangle in any * any
+    defunion Point
+    | Circle in float()
+    | Rectangle in any * any
   end
   ```
 
@@ -87,17 +87,17 @@ defmodule DiscUnion do
   end
 
   defmodule Test do
-      require Result
+    require Result
 
-      def run(file) do
-          res = Result.from! File.open(file)
-          Result.case res do
-              r={:ok, io_dev}                       -> {:yey, r, io_dev}
-              :error in reason when reason==:eacces -> :too_much_protections
-              :error in :enoent                     -> :why_no_file
-              :error in _reason                     -> :ney
-          end
+    def run(file) do
+      res = Result.from! File.open(file)
+      Result.case res do
+        r={:ok, io_dev}                       -> {:yey, r, io_dev}
+        :error in reason when reason==:eacces -> :too_much_protections
+        :error in :enoent                     -> :why_no_file
+        :error in _reason                     -> :ney
       end
+    end
   end
   ```
   Since cases are just a tuples, they can be used also used as a clause for `case` macro. Matching and gaurds also works!

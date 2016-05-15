@@ -20,11 +20,11 @@ To define a discriminated union, `defunion` macro is used:
 
 ``` elixir
 defmodule Shape do
-    use DiscUnion
+  use DiscUnion
 
-    defunion Point
-    | Circle in float()
-    | Rectangle in any * any
+  defunion Point
+  | Circle in float()
+  | Rectangle in any * any
 end
 ```
 
@@ -102,23 +102,23 @@ This should work seamlessly with existing convections:
 
 ``` elixir
 defmodule Result do
-    use DiscUnion
+  use DiscUnion
 
-    defunion :ok in any | :error in String.t
+  defunion :ok in any | :error in String.t
 end
 
 defmodule Test do
-    require Result
+  require Result
 
-    def run(file) do
-        res = Result.from! File.open(file)
-        Result.case res do
-            r={:ok, io_dev}                       -> {:yey, r, io_dev}
-            :error in reason when reason==:eacces -> :too_much_protections
-            :error in :enoent                     -> :why_no_file
-            :error in _reason                     -> :ney
-        end
+  def run(file) do
+    res = Result.from! File.open(file)
+    Result.case res do
+      r={:ok, io_dev}                       -> {:yey, r, io_dev}
+      :error in reason when reason==:eacces -> :too_much_protections
+      :error in :enoent                     -> :why_no_file
+      :error in _reason                     -> :ney
     end
+  end
 end
 ```
 Since cases are just a tuples, they can be used also used as a clause for `case` macro. Matching and gaurds also works!
@@ -129,10 +129,10 @@ It is possible to place discriminated union's constructor macros in function def
 
 ``` elixir
 defmodule ShapeArea do
-    require Shape
+  require Shape
 
-    def calc_area(Shape.point), do: 0
-    def calc_area(Shape.circle(r)), do: :math.pi*r*r
+  def calc_area(Shape.point), do: 0
+  def calc_area(Shape.circle(r)), do: :math.pi*r*r
 end
 ```
 
