@@ -33,8 +33,10 @@ defmodule DiscUnion.Mixfile do
   defp deps do
     [
       {:excoveralls, "~> 0.4", only: [:dev, :test]},
-      {:exref, "~> 0.1.1", only: :dev},
+      {:exref, "~> 0.1.1", only: [:dev]},
       {:dialyxir, "~> 0.3.3", only: [:dev]},
+      {:ex_doc, "~> 0.11", only: [:dev]},
+      {:earmark, "~> 0.1", only: [:dev]},
     ]
   end
 

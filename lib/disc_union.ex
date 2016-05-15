@@ -29,7 +29,10 @@ defmodule DiscUnion do
   end
 
   @doc """
-  Defines a discriminated union. Use `|` to separate union cases from each other. Union cases can have arguments and a
+
+  Defines a discriminated union.
+
+  Use `|` to separate union cases from each other. Union cases can have arguments and a
   `*` can be used to combine several arguments. Underneath, it's just a struct with union cases represented as atoms and
   tuples.
   Type specs in definitions are only for description and have no influance on code nor are they used for any type

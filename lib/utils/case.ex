@@ -1,4 +1,5 @@
 defmodule DiscUnion.Utils.Case do
+  @moduledoc false
 
   @spec map_reduce_clauses(DiscUnion.case_clauses, (list(Macro.expr), any -> {Macro.expr, any}), any) :: {DiscUnion.case_clauses, any}
   def map_reduce_clauses(clauses, f, acc) do
