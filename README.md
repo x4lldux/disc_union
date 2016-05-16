@@ -97,7 +97,7 @@ cases can be get by `Shape.__union_cases__/0` function:
 %Shape{case: {Circle, :foo}} = Shape.circle(:foo)
 ```
 
-Cases that have arguments are just tuples; n-argument union case is a n+1-tuple with a case tag as it's first element.
+Cases that have arguments are just tuples; *n*-argument union case is a *n+1*-tuple with a case tag as it's first element.
 This should work seamlessly with existing convections:
 
 ``` elixir
@@ -149,7 +149,7 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
   1. Add disc_union to your list of dependencies in `mix.exs`:
 
         def deps do
-          [{:disc_union, "~> 0.0.1"}]
+          [{:disc_union, "~> 0.1.0"}]
         end
 
   2. Ensure disc_union is started before your application:

@@ -2,16 +2,21 @@ defmodule DiscUnion.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :disc_union,
-     version: "0.0.1",
-     elixir: "~> 1.2",
-     compilers: compilers,
-     test_coverage: [tool: ExCoveralls],
-     preferred_cli_env: ["coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test],
-     consolidate_protocols: Mix.env != :test,
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps]
+    [
+      app: :disc_union,
+      version: "0.1.0",
+      elixir: "~> 1.2",
+      description: "Discriminated unions for Elixir",
+      package: package,
+      compilers: compilers,
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: ["coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test],
+      consolidate_protocols: Mix.env != :test,
+      build_embedded: Mix.env == :prod,
+      start_permanent: Mix.env == :prod,
+      deps: deps,
+      docs: docs
+    ]
   end
 
   # Configuration for the OTP application
@@ -44,7 +49,17 @@ defmodule DiscUnion.Mixfile do
     compilers(Mix.env)
   end
   defp compilers(:dev) do
-     Mix.compilers ++ [:exref]
+    Mix.compilers ++ [:exref]
   end
   defp compilers(_), do: Mix.compilers
+
+  defp package do
+    [ maintainers: ["X4lldux"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/X4lldux/disc_union"} ]
+  end
+
+  defp docs do
+    [extras: ["README.md": [title: "README"]]]
+  end
 end

@@ -76,7 +76,7 @@ defmodule DiscUnion do
   %Shape{case: {Circle, :foo}} = Shape.circle(:foo)
   ```
 
-  Cases that have arguments are just tuples; n-argument union case is a n+1-tuple with a case tag as it's first element.
+  Cases that have arguments are just tuples; *n*-argument union case is a *n+1*-tuple with a case tag as it's first element.
   This should work seamlessly with existing convections:
 
   ``` elixir
