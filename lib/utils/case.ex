@@ -76,8 +76,8 @@ defmodule DiscUnion.Utils.Case do
   defp extract_used_case_clauses([c], used_cases) do
     {canonical_union_tag, canonical_union_args_count, _} = c |> DiscUnion.Utils.canonical_form_of_union_case
     cc={canonical_union_tag, canonical_union_args_count}
-    unless cc in used_cases do
-      used_cases = [cc | used_cases]
+    used_cases = unless cc in used_cases do
+      [cc | used_cases]
     end
 
     {[c], used_cases}
@@ -120,11 +120,11 @@ defmodule DiscUnion.Utils.Case do
         stacktrace = System.stacktrace
         if Exception.message(exception) == "oops" do
 
-          case when? do
+          stacktrace = case when? do
             :runtime     ->
-              stacktrace = stacktrace |> Enum.drop(2)
+              stacktrace |> Enum.drop(2)
             :compiletime ->
-              stacktrace = stacktrace
+              stacktrace
               |> Enum.drop_while(
                 fn {_, _, _, o} ->
                   Keyword.get(o, :file)
