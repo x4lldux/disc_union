@@ -121,6 +121,7 @@ defmodule DiscUnion do
     quote location: :keep, unquote: true do
       all_cases=unquote(cases)
 
+      @enforce_keys [:case]
       @type t :: %__MODULE__{}
       defstruct case: []
 
