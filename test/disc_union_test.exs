@@ -202,7 +202,7 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union's dynamic constructors should not be created when `dyn_constructors` is false" do
-    assert_raise UndefinedFunctionError, "undefined function TestDUdc.a/0", fn ->
+    assert_raise UndefinedFunctionError, fn ->
       Code.eval_quoted(quote do
                         require TestDUdc
                         TestDUdc.a
