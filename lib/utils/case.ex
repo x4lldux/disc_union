@@ -76,8 +76,9 @@ defmodule DiscUnion.Utils.Case do
   defp extract_used_case_clauses([c], used_cases) do
     {canonical_union_tag, canonical_union_args_count, _} = c |> DiscUnion.Utils.canonical_form_of_union_case
     cc={canonical_union_tag, canonical_union_args_count}
-    used_cases = unless cc in used_cases do
-      [cc | used_cases]
+    used_cases = case cc in used_cases do
+      true  -> [cc | used_cases]
+      false -> used_cases
     end
 
     {[c], used_cases}
