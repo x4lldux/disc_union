@@ -149,7 +149,7 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
   1. Add disc_union to your list of dependencies in `mix.exs`:
 
         def deps do
-          [{:disc_union, "~> 0.1.0"}]
+          [{:disc_union, "~> 0.1.1"}]
         end
 
   2. Ensure disc_union is started before your application:

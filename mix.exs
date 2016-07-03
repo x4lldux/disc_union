@@ -4,7 +4,7 @@ defmodule DiscUnion.Mixfile do
   def project do
     [
       app: :disc_union,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.2",
       description: "Discriminated unions for Elixir",
       package: package,
@@ -38,7 +38,6 @@ defmodule DiscUnion.Mixfile do
   defp deps do
     [
       {:excoveralls, "~> 0.4", only: [:dev, :test]},
-      {:exref, "~> 0.1.1", only: [:dev]},
       {:dialyxir, "~> 0.3.3", only: [:dev]},
       {:ex_doc, "~> 0.11", only: [:dev]},
       {:earmark, "~> 0.1", only: [:dev]},
@@ -47,9 +46,6 @@ defmodule DiscUnion.Mixfile do
 
   defp compilers do
     compilers(Mix.env)
-  end
-  defp compilers(:dev) do
-    Mix.compilers ++ [:exref]
   end
   defp compilers(_), do: Mix.compilers
 
