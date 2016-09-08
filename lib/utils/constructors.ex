@@ -91,6 +91,10 @@ defmodule DiscUnion.Utils.Constructors do
             {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: case_tag]}]}
           end
 
+          def c!(unquote(case_tag) = case_tag) do
+              %__MODULE__{case: case_tag}
+          end
+
        {_variant_case, case_tag, case_tag_match_ast, case_tag_str, count} ->
           args = 1..count |> Enum.map(&(Macro.var("v#{&1}" |> String.to_atom, nil)))
 
@@ -101,6 +105,9 @@ defmodule DiscUnion.Utils.Constructors do
           defmacro c(unquote(case_tag_match_ast), unquote_splicing(args)) do
             tuple = {:{}, [], [unquote(case_tag) | unquote(args)]}
             {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: tuple]}]}
+          end
+          def c!(unquote(case_tag) = case_tag, unquote_splicing(args))do
+            %__MODULE__{case: {case_tag, unquote_splicing(args)}}
           end
       end)
 
@@ -113,10 +120,17 @@ defmodule DiscUnion.Utils.Constructors do
           defmacro c(case_tag) do
             DiscUnion.Utils.Case.raise_undefined_union_case case_tag, at: :compiletime
           end
+          def c!(case_tag) do
+            DiscUnion.Utils.Case.raise_undefined_union_case case_tag, at: :compiletime
+          end
 
         {count, _} ->
           args = 1..count |> Enum.map(&(Macro.var("v#{&1}" |> String.to_atom, nil)))
           defmacro c(case_tag, unquote_splicing(args)) do
+            case_tuple = {:{}, [], [case_tag | unquote(args)]}
+            DiscUnion.Utils.Case.raise_undefined_union_case case_tuple, at: :compiletime
+          end
+          def c!(case_tag, unquote_splicing(args)) do
             case_tuple = {:{}, [], [case_tag | unquote(args)]}
             DiscUnion.Utils.Case.raise_undefined_union_case case_tuple, at: :compiletime
           end

@@ -188,11 +188,15 @@ defmodule DiscUnionTest do
     rty_case = struct TestDU, %{case: {Rty, 1, :ok}}
     assert TestDU.c(Asd) == asd_case
     assert TestDU.c(Rty, 1, :ok) == rty_case
+    assert TestDU.c!(Asd) == asd_case
+    assert TestDU.c!(Rty, 1, :ok) == rty_case
 
     asd_case = struct TestDUa, %{case: :asd}
     rty_case = struct TestDUa, %{case: {:rty, 1, :ok}}
     assert TestDUa.c(:asd) == asd_case
     assert TestDUa.c(:rty, 1, :ok) == rty_case
+    assert TestDUa.c!(:asd) == asd_case
+    assert TestDUa.c!(:rty, 1, :ok) == rty_case
   end
 
   test "discriminated union can be constructed via dynamic constructors that construct at compile-time from valid cases" do
@@ -289,6 +293,33 @@ defmodule DiscUnionTest do
       Code.eval_quoted(quote do
                         require TestDUa
                         TestDUa.c :qqq, 123
+      end)
+    end
+  end
+
+  test "discriminated union's `c!` constructor rises at compile-time for invalid cases" do
+    assert_raise UndefinedUnionCaseError, "undefined union case: Qqq", fn ->
+      Code.eval_quoted(quote do
+                        require TestDU
+                        TestDU.c! Qqq
+      end)
+    end
+    assert_raise UndefinedUnionCaseError, "undefined union case: Qqq in _", fn ->
+      Code.eval_quoted(quote do
+                        require TestDU
+                        TestDU.c! Qqq, 123
+      end)
+    end
+    assert_raise UndefinedUnionCaseError, "undefined union case: :qqq", fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        TestDUa.c! :qqq
+      end)
+    end
+    assert_raise UndefinedUnionCaseError, "undefined union case: :qqq in _", fn ->
+      Code.eval_quoted(quote do
+                        require TestDUa
+                        TestDUa.c! :qqq, 123
       end)
     end
   end
