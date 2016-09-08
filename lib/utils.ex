@@ -96,49 +96,6 @@ defmodule DiscUnion.Utils do
     length(cases) == length(unique_cases)
   end
 
-  @doc """
-  Builds AST for matching a case.
-  When is a single atom, AST looks the same. For tuples, first argument (union tag) is saved, but rest is replaced
-  with underscore `_` to match anything.
-  """
-  @spec build_match_ast([Macro.expr]) :: [Macro.expr]
-  def build_match_ast(cases) do
-    # cases=cases |> Macro.escape
-    # cases |> IO.inspect
-    cases
-    |> Enum.map(&Macro.escape/1)
-    |> Enum.map(fn
-      x when is_atom(x) ->
-        x
-      {op, ctx, [c | cs]} when op in [:{}, :__aliases__] and is_atom(c) ->
-        cs = cs |> Enum.map(fn _ ->
-          quote do: _
-        end)
-        {:{}, ctx, [c |cs]}
-      {c, _} when c |> is_atom -> # 2-tuple
-        cs = [quote do: _]
-        {:{}, [], [c | cs ]}
-    end)
-  end
-
-  @spec build_spec_ast([Macro.expr]) :: [Macro.expr]
-  def build_spec_ast(cases) do
-    cases
-    |> Enum.map(&Macro.escape/1)
-    |> Enum.map(fn
-      x when is_atom(x) ->
-        x
-      {op, ctx, [c | cs]} when op in [:{}, :__aliases__] and is_atom(c) ->
-        cs = cs |> Enum.map(fn _ ->
-          quote do: any
-        end)
-        {:{}, ctx, [c |cs]}
-      {c, _} when c |> is_atom -> # 2-tuple
-        cs = [quote do: any]
-        {:{}, [], [c | cs ]}
-    end)
-  end
-
   @spec module_name(atom) :: String.t
   def module_name(module) do
     case module |> to_string do
