@@ -62,8 +62,8 @@ defmodule DiscUnionTest do
                         | Qwe in any
                         | Rty in integer * atom
                         | Zxc in integer * String.t * String.t
-                        | Vbn in {int, int}
-                        | Fgh in {int, int} * {any, any, any}
+                        | Vbn in {integer, integer}
+                        | Fgh in {integer, integer} * {any, any, any}
                       end
     end)
     Code.eval_quoted(quote do
@@ -73,8 +73,8 @@ defmodule DiscUnionTest do
                         | :qwe in any
                         | :rty in integer * atom
                         | :zxc in integer * String.t * String.t
-                        | :vbn in {int, int}
-                        | :fgh in {int, int} * {any, any, any}
+                        | :vbn in {integer, integer}
+                        | :fgh in {integer, integer} * {any, any, any}
                       end
     end)
   end

@@ -118,11 +118,12 @@ defmodule DiscUnion do
   end
 
   defp build_union(cases) do
-    quote location: :keep, unquote: true do
-      all_cases=unquote(cases)
-
+    union_typespec = DiscUnion.Utils.build_union_cases_specs(cases)
+    main_body = quote location: :keep, unquote: true do
+      all_cases = unquote(cases)
       @enforce_keys [:case]
-      @type t :: %__MODULE__{}
+
+      @type t :: %__MODULE__{case: union_cases}
       defstruct case: []
 
       defimpl Inspect do
@@ -175,5 +176,7 @@ defmodule DiscUnion do
 
       DiscUnion.Utils.Constructors.build_constructor_functions __MODULE__, all_cases
     end
+
+    [union_typespec, main_body]
   end
 end

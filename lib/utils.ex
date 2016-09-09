@@ -103,4 +103,36 @@ defmodule DiscUnion.Utils do
       m              -> m
     end
   end
+
+  @spec build_union_case_spec(Macro.t) :: Macro.t
+  def build_union_case_spec(variant_case) do
+    canonical_case =
+      variant_case
+      |> DiscUnion.Utils.canonical_form_of_union_case
+
+    case canonical_case do
+      {_tag, _count, str} when  is_tuple(str) ->
+        tuple_elems =
+          str
+          |> Tuple.to_list
+          |> Enum.map(& String.replace(&1, "\"", "") )
+          |> Enum.map(fn e -> Code.eval_string("quote do #{e} end", [], __ENV__) |> elem(0) end)
+        quote do {unquote_splicing(tuple_elems)} end
+      {_tag, _count, str} ->
+        str
+        |> Code.eval_string([], __ENV__)
+        |> elem(0)
+    end
+  end
+
+  @spec build_union_cases_specs(Macro.t) :: Macro.t
+  def build_union_cases_specs(cases) do
+    specs = cases
+    |> Enum.map(&build_union_case_spec/1)
+    |> Enum.reverse
+    |> Enum.reduce(fn e, acc ->
+        quote do unquote(e) | unquote(acc) end
+    end)
+    quote do @type union_cases :: unquote(specs) end
+  end
 end
