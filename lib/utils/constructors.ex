@@ -62,9 +62,7 @@ defmodule DiscUnion.Utils.Constructors do
       end)
 
       # default fallbacks raising errors
-      @spec from!(any, term) :: term
       def from!(case_tuple, ret), do: ret
-      @spec from!(any) :: no_return()
       def from!(case_tuple) do
         DiscUnion.Utils.Case.raise_undefined_union_case case_tuple, at: :runtime
       end
@@ -132,7 +130,6 @@ defmodule DiscUnion.Utils.Constructors do
             DiscUnion.Utils.Case.raise_undefined_union_case case_tag, at: :compiletime
           end
 
-          @spec c!(any) :: no_return()
           def c!(case_tag) do
             DiscUnion.Utils.Case.raise_undefined_union_case case_tag, at: :compiletime
           end
@@ -144,8 +141,6 @@ defmodule DiscUnion.Utils.Constructors do
             DiscUnion.Utils.Case.raise_undefined_union_case case_tuple, at: :compiletime
           end
 
-          spec_args = 1..count |> Enum.map(fn _ -> quote do: any end)
-          @spec c!(any, unquote_splicing(spec_args)) :: no_return()
           def c!(case_tag, unquote_splicing(args)) do
             case_tuple = {:{}, [], [case_tag | unquote(args)]}
             DiscUnion.Utils.Case.raise_undefined_union_case case_tuple, at: :compiletime
