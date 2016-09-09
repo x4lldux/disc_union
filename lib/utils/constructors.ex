@@ -62,7 +62,9 @@ defmodule DiscUnion.Utils.Constructors do
       end)
 
       # default fallbacks raising errors
+      @spec from!(any, term) :: term
       def from!(case_tuple, ret), do: ret
+      @spec from!(any) :: no_return()
       def from!(case_tuple) do
         DiscUnion.Utils.Case.raise_undefined_union_case case_tuple, at: :runtime
       end
@@ -79,9 +81,14 @@ defmodule DiscUnion.Utils.Constructors do
       # construct `c` and `from` macros and `c!` functions
       cases
       |> Enum.map(&DiscUnion.Utils.Constructors.extended_case_tag_definition/1)
+      |> Enum.map(fn {variant_case, case_tag, case_tag_match_ast, case_tag_str, count} ->
+        case_params_spec_ast = DiscUnion.Utils.Constructors.case_spec_ast_params_list variant_case
+        {variant_case, case_tag, case_tag_match_ast, case_params_spec_ast, case_tag_str, count}
+      end)
       |> Enum.map(fn           # HACK: too many quotes and unquotes. only solutions I came up with to combine quoted and
                                # unquoted expression
-        {variant_case, case_tag, case_tag_match_ast, case_tag_str, 0} ->
+        # {variant_case, case_tag, case_tag_match_ast, case_tag_str, 0} ->
+        {variant_case, case_tag, case_tag_match_ast, case_params_spec_ast, case_tag_str, 0} ->
           @doc """
           Constructs a valid `#{case_tag_str}` case for `#{DiscUnion.Utils.module_name mod}` discriminated union.
           Works at compile-time and will raise an error when unknown union case is used.
@@ -91,11 +98,13 @@ defmodule DiscUnion.Utils.Constructors do
             {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: case_tag]}]}
           end
 
+          @spec c!(unquote_splicing(case_params_spec_ast)) :: %__MODULE__{case: {unquote_splicing(case_params_spec_ast)}}
           def c!(unquote(case_tag) = case_tag) do
               %__MODULE__{case: case_tag}
           end
 
-       {_variant_case, case_tag, case_tag_match_ast, case_tag_str, count} ->
+        # {_variant_case, case_tag, case_tag_match_ast, case_tag_str, count} ->
+        {_variant_case, case_tag, case_tag_match_ast, case_params_spec_ast, case_tag_str, count} ->
           args = 1..count |> Enum.map(&(Macro.var("v#{&1}" |> String.to_atom, nil)))
 
           # @doc """
@@ -106,6 +115,8 @@ defmodule DiscUnion.Utils.Constructors do
             tuple = {:{}, [], [unquote(case_tag) | unquote(args)]}
             {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: tuple]}]}
           end
+
+          @spec c!(unquote_splicing(case_params_spec_ast)) :: %__MODULE__{case: {unquote_splicing(case_params_spec_ast)}}
           def c!(unquote(case_tag) = case_tag, unquote_splicing(args))do
             %__MODULE__{case: {case_tag, unquote_splicing(args)}}
           end
@@ -120,6 +131,8 @@ defmodule DiscUnion.Utils.Constructors do
           defmacro c(case_tag) do
             DiscUnion.Utils.Case.raise_undefined_union_case case_tag, at: :compiletime
           end
+
+          @spec c!(any) :: no_return()
           def c!(case_tag) do
             DiscUnion.Utils.Case.raise_undefined_union_case case_tag, at: :compiletime
           end
@@ -130,6 +143,9 @@ defmodule DiscUnion.Utils.Constructors do
             case_tuple = {:{}, [], [case_tag | unquote(args)]}
             DiscUnion.Utils.Case.raise_undefined_union_case case_tuple, at: :compiletime
           end
+
+          spec_args = 1..count |> Enum.map(fn _ -> quote do: any end)
+          @spec c!(any, unquote_splicing(spec_args)) :: no_return()
           def c!(case_tag, unquote_splicing(args)) do
             case_tuple = {:{}, [], [case_tag | unquote(args)]}
             DiscUnion.Utils.Case.raise_undefined_union_case case_tuple, at: :compiletime
@@ -198,23 +214,38 @@ defmodule DiscUnion.Utils.Constructors do
     end
   end
 
-  @spec case_tuple_spec_ast(Macro.expr) :: Macro.expr
-  def case_tuple_spec_ast(union_case) do
+  def case_spec_ast_params_list(union_case) do
     union_case = union_case |> Macro.escape
     case union_case do
       x when is_atom(x) ->
-        x
+        [x]
       {op, ctx, [c | cs]} when op in [:{}, :__aliases__] and is_atom(c) ->
-        cs = cs |> Enum.map(fn _ ->
-          quote do: any
+        cs = cs |> Enum.map(fn arg ->
+          "quote do #{arg} end"
+          |> Code.eval_string([], ctx)
+          |> elem(0)
         end)
-        {:{}, ctx, [c |cs]}
-      {c, _} when c |> is_atom -> # 2-tuple
-        cs = [quote do: any]
-        {:{}, [], [c | cs ]}
+        [c | cs]
+      {c, cs} when c |> is_atom -> # 2-tuple
+        cs =
+          "quote do #{cs} end"
+          |> Code.eval_string([], __ENV__)
+          |> elem(0)
+        [c, cs]
     end
+
   end
 
+  @spec case_tuple_spec_ast(Macro.expr) :: Macro.expr
+  def case_tuple_spec_ast(union_case) do
+    specs = union_case |> case_spec_ast_params_list
+    case specs do
+      [x] ->
+        x
+      _ -> # 2-tuple
+        {:{}, [], specs}
+    end
+  end
 
   def dyn_constructors_name(variant_case) do
     case_tag = case variant_case |> to_string do
