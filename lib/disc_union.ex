@@ -15,9 +15,9 @@ defmodule DiscUnion do
   @type canonical_union_tag :: {:_, 0} | {:__aliases__, atom} | atom
 
   defmacro __using__(opts) do
-    opts = opts ++ [dyn_constructors: true]
-    if true == Keyword.get opts, :dyn_constructors do
-      Module.put_attribute(__CALLER__.module, :dyn_constructors, true)
+    opts = opts ++ [named_constructors: false]
+    if true == Keyword.get opts, :named_constructors do
+      Module.put_attribute(__CALLER__.module, :named_constructors, true)
     end
 
     quote do

@@ -4,9 +4,9 @@ defmodule DiscUnion.Utils.Constructors do
   defmacro build_constructor_functions(mod, cases) do
     from_constructors = build_from_constructors(cases, mod)
     c_constructors = build_c_constructors(cases, mod)
-    dyn_constructors = build_dyn_constructors(cases, mod)
+    named_constructors = build_named_constructors(cases, mod)
 
-    [from_constructors, c_constructors, dyn_constructors]
+    [from_constructors, c_constructors, named_constructors]
   end
 
   def build_from_constructors(cases, mod) do
@@ -149,33 +149,33 @@ defmodule DiscUnion.Utils.Constructors do
     end
   end
 
-  def build_dyn_constructors(cases, mod) do
+  def build_named_constructors(cases, mod) do
     quote bind_quoted: [cases: cases, mod: mod] do
-      if true == Module.get_attribute __MODULE__, :dyn_constructors do
+      if true == Module.get_attribute __MODULE__, :named_constructors do
        cases
        |> Enum.map(&DiscUnion.Utils.Constructors.extended_case_tag_definition/1)
        |> Enum.map(fn           # HACK: too many quotes and unquotes. only solutions I could up to combine quoted and
                                 # unquoted expression
          {_variant_case, case_tag, _case_tag_match_ast, case_tag_str, 0} ->
-           dyn_constructors_name = DiscUnion.Utils.Constructors.dyn_constructors_name(case_tag)
+           named_constructors_name = DiscUnion.Utils.Constructors.named_constructors_name(case_tag)
 
            @doc """
            Constructs a valid `#{case_tag_str}` case for `#{DiscUnion.Utils.module_name mod}` discriminated union.
            Works at compile-time and will raise an error when unknown union case is used.
            """
-           defmacro unquote(dyn_constructors_name)() do
+           defmacro unquote(named_constructors_name)() do
              {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: unquote(case_tag)]}]}
            end
 
          {_variant_case, case_tag, _case_tag_match_ast, case_tag_str, count} ->
            args = 1..count |> Enum.map(&(Macro.var("v#{&1}" |> String.to_atom, nil)))
-           dyn_constructors_name = DiscUnion.Utils.Constructors.dyn_constructors_name(case_tag)
+           named_constructors_name = DiscUnion.Utils.Constructors.named_constructors_name(case_tag)
 
             @doc """
             Constructs a valid `#{case_tag_str}` case for `#{DiscUnion.Utils.module_name mod}` discriminated union.
             Works at compile-time and will raise an error when unknown union case is used.
             """
-            defmacro unquote(dyn_constructors_name)(unquote_splicing(args)) do
+            defmacro unquote(named_constructors_name)(unquote_splicing(args)) do
               tuple = {:{}, [], [unquote(case_tag)  | unquote(args)]}
               # __MODULE__.from!(tuple)
               # |> Macro.expand(__ENV__)
@@ -242,7 +242,7 @@ defmodule DiscUnion.Utils.Constructors do
     end
   end
 
-  def dyn_constructors_name(variant_case) do
+  def named_constructors_name(variant_case) do
     case_tag = case variant_case |> to_string do
                  "Elixir." <> case_tag -> case_tag
                  case_tag              -> case_tag
