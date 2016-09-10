@@ -40,7 +40,8 @@ defmodule DiscUnion do
 
 
   ## Usage
-  To define a discriminated union `Shape` with cases of `Point`, `Circle` and `Rectangle`:
+  To define a discriminated union, `defunion` macro is used:
+
   ``` elixir
   defmodule Shape do
     use DiscUnion
@@ -51,14 +52,64 @@ defmodule DiscUnion do
   end
   ```
 
-  When constructing a case (an union tag), you have three options:
+  Type specs in `Circle` or `Rectangle` definitions are only for description and have no influance on code nor are they
+  used for any type checking - there is no typchecking other then checking if correct cases were used!
 
-  * `from/1` macro (compile-time checking),
-  * `from!/` or `from!/2` functions (only run-time checking).
-  * a dynamicaly built macro named after union tag (in a camalized form, i.e. `Shape`'s `Circle` case, would be
-  available as `Shape.circle/1` macro and also with compile-time checking),
+  When constructing a case (an union tag), you have couple of options:
 
-  If you would do `use DiscUnion, dyn_constructors: false`, dynamic constructos would not be built.
+   * `c` macro, where arrity depends on number of arguments you set for
+     cases (compile-time checking),
+   * `c!` function, where arrity depends on number of arguments you set for
+     cases (run-time checking),
+   * `from/1` macro, accepts a tuple (compile-time checking),
+   * `from!/` or `from!/2` functions, accepts a tuple (only run-time checking).
+   * a dynamically built macro (aka "named constructors") named after union tag (in a camelized form, i.e. `Score`'s `Advantage`
+     case, in tennis kata, would be available as `Score.advantage/2` macro and also with compile-time checking),
+
+  Preferred way to construct a variant case is via `c` macros or `c!` functions. `from/1` and `from!/1` construcotrs are mainly
+  to be used when interacting with return values like in example with opening a file.
+  If you'd like to enable named constructors do: `use DiscUnion, named_constructors: true`.
+
+
+  If `Score.from {Pointz, 1, 2}` or `Score.c Pointz, 1, 2` be placed somwhere in `run_test_match/0` function, in tennis kata,
+  compiler would throw  this error:
+
+  ``` elixir
+  == Compilation error on file example/tennis_kata.exs ==
+  ** (UndefinedUnionCaseError) undefined union case: Pointz in _, _
+      (disc_union) expanding macro: Score.from/1
+      (disc_union) example/tennis_kata.exs:38: Tennis.run_test_match/0
+  ```
+
+  If you would use `from!/1` or `c!`, this error would be thrown at run-time, or, in the case of `from!/2`, not at all! Function
+  `from!/2` returns it's second argument when unknow clause is passed to the function.
+
+
+  For each discriminated union, a special `case` macro is created. This macro checks if all cases were covered in it's
+  clauses (at compile-time) and expects it's predicate to be evaluated to this discriminated union's struct (checked at
+  run-time).
+
+  If `Game in _`, in `Tennis.score_point/2` functions, would be commented, compiler would throw this error:
+
+  ``` elixir
+  == Compilation error on file example/tennis_kata.exs ==
+  ** (MissingUnionCaseError) not all defined union cases are used, should be all of: Points in "PlayerPoints" * "PlayerPoints", Advantage in "Player", Deuce, Game in "Player"
+      (disc_union) expanding macro: Score.case/2
+      (disc_union) example/tennis_kata.exs:64: Tennis.score_point/2
+
+  ```
+
+  You can also use a catch-all statment (_), like in a regular `case` macro (`Kernel.SpecialForms.case/2`), but here, it
+  needs to be explicitly enabled by passing `allow_underscore: true` option to the macro:
+
+  ``` elixir
+  Score.case score, allow_underscore: true do
+    Points in PlayerPoints.forty, PlayerPoints.forty -> Score.duce
+    _ -> score
+  end
+  ```
+
+  Otherwise you would see a smillar error like above.
 
 
   ## How it works
@@ -72,8 +123,8 @@ defmodule DiscUnion do
   cases can be get by `Shape.__union_cases__/0` function:
 
   ``` elixir
-  %Shape{case: Point} = Shape.point
-  %Shape{case: {Circle, :foo}} = Shape.circle(:foo)
+%  Shape{case: Point} = Shape.c Point
+%  Shape{case: {Circle, :foo}} = Shape.c Circle, :foo
   ```
 
   Cases that have arguments are just tuples; *n*-argument union case is a *n+1*-tuple with a case tag as it's first element.
@@ -83,7 +134,7 @@ defmodule DiscUnion do
   defmodule Result do
     use DiscUnion
 
-    defunion :ok in any | :error in String.t
+    defunion :ok in any | :error in atom
   end
 
   defmodule Test do

@@ -31,27 +31,33 @@ end
 Type specs in `Circle` or `Rectangle` definitions are only for description and have no influance on code nor are they
 used for any type checking - there is no typchecking other then checking if correct cases were used!
 
-When constructing a case (an union tag), you have three options:
+When constructing a case (an union tag), you have couple of options:
 
- * `from/1` macro (compile-time checking),
- * `from!/` or `from!/2` functions (only run-time checking).
- * a dynamicaly built macro named after union tag (in a camalized form, i.e. `Score`'s `Advantage` case, in tennis kata,
- would be available as `Score.advantage/2` macro and also with compile-time checking),
+ * `c` macro, where arrity depends on number of arguments you set for
+   cases (compile-time checking),
+ * `c!` function, where arrity depends on number of arguments you set for
+   cases (run-time checking),
+ * `from/1` macro, accepts a tuple (compile-time checking),
+ * `from!/` or `from!/2` functions, accepts a tuple (only run-time checking).
+ * a dynamically built macro (aka "named constructors") named after union tag (in a camelized form, i.e. `Score`'s `Advantage`
+   case, in tennis kata, would be available as `Score.advantage/2` macro and also with compile-time checking),
 
-If you would do `use DiscUnion, dyn_constructors: false`, dynamic constructos would not be built.
+Preferred way to construct a variant case is via `c` macros or `c!` functions. `from/1` and `from!/1` construcotrs are mainly
+to be used when interacting with return values like in example with opening a file.
+If you'd like to enable named constructors do: `use DiscUnion, named_constructors: true`.
 
 
-If `Score.from {Pointz, 1, 2}` be placed somwhere in `run_test_match/0` function, in tennis kata, compiler would throw
-this error:
+If `Score.from {Pointz, 1, 2}` or `Score.c Pointz, 1, 2` be placed somwhere in `run_test_match/0` function, in tennis kata,
+compiler would throw  this error:
 
 ``` elixir
 == Compilation error on file example/tennis_kata.exs ==
-** (UndefinedUnionCaseError) undefined union case: {Pointz, 1, 2}
+** (UndefinedUnionCaseError) undefined union case: Pointz in _, _
     (disc_union) expanding macro: Score.from/1
     (disc_union) example/tennis_kata.exs:38: Tennis.run_test_match/0
 ```
 
-If you would use `from!/1`, this error would be thrown at run-time, or, in the case of `from!/2`, not at all! Function
+If you would use `from!/1` or `c!`, this error would be thrown at run-time, or, in the case of `from!/2`, not at all! Function
 `from!/2` returns it's second argument when unknow clause is passed to the function.
 
 
@@ -93,8 +99,8 @@ The `Shape` union creates a `%Shape{}` struct with current active case held in `
 cases can be get by `Shape.__union_cases__/0` function:
 
 ``` elixir
-%Shape{case: Point} = Shape.point
-%Shape{case: {Circle, :foo}} = Shape.circle(:foo)
+%Shape{case: Point} = Shape.c Point
+%Shape{case: {Circle, :foo}} = Shape.c Circle, :foo
 ```
 
 Cases that have arguments are just tuples; *n*-argument union case is a *n+1*-tuple with a case tag as it's first element.
@@ -104,7 +110,7 @@ This should work seamlessly with existing convections:
 defmodule Result do
   use DiscUnion
 
-  defunion :ok in any | :error in String.t
+  defunion :ok in any | :error in atom
 end
 
 defmodule Test do
@@ -131,8 +137,8 @@ It is possible to place discriminated union's constructor macros in function def
 defmodule ShapeArea do
   require Shape
 
-  def calc_area(Shape.point), do: 0
-  def calc_area(Shape.circle(r)), do: :math.pi*r*r
+  def calc_area(Shape.c(Point)), do: 0
+  def calc_area(Shape.circle(r)), do: :math.pi*r*r  # assuming named construcors are enabled
 end
 ```
 
