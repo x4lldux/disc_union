@@ -138,7 +138,7 @@ defmodule DiscUnion do
   end
 
   defmodule Test do
-    require Result
+    use Result
 
     def run(file) do
       res = Result.from! File.open(file)
@@ -188,6 +188,12 @@ defmodule DiscUnion do
       @doc "Returns a list with all acceptable union cases."
       def __union_cases__ do
         unquote(cases)
+      end
+
+      def __using__(_) do
+        quote do
+          require unquote(__MODULE__)
+        end
       end
 
       @doc """

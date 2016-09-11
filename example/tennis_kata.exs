@@ -15,7 +15,7 @@ end
 
 defmodule Score do
   use DiscUnion
-  require PlayerPoints
+  use PlayerPoints
 
   defunion Points in PlayerPoints.t * PlayerPoints.t
   | Advantage in Player.t
@@ -29,9 +29,9 @@ defmodule Score do
 end
 
 defmodule Tennis do
-  require Player
-  require PlayerPoints
-  require Score
+  use Player
+  use PlayerPoints
+  use Score
 
   def run_test_match do
     # Player A will always wins!

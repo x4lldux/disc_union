@@ -162,8 +162,8 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union can be constructed via `from/1` and `from!/1` from valid cases" do
-    require TestDU
-    require TestDUa
+    use TestDU
+    use TestDUa
 
     asd_case = struct TestDU, %{case: Asd}
     rty_case = struct TestDU, %{case: {Rty, 1, :ok}}
@@ -181,8 +181,8 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union can be constructed via `c/1` from valid cases" do
-    require TestDU
-    require TestDUa
+    use TestDU
+    use TestDUa
 
     asd_case = struct TestDU, %{case: Asd}
     rty_case = struct TestDU, %{case: {Rty, 1, :ok}}
@@ -200,8 +200,8 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union can be constructed via named constructors that construct at compile-time from valid cases" do
-    require TestDU
-    require TestDUa
+    use TestDU
+    use TestDUa
 
     asd_case = struct TestDU, %{case: Asd}
     rty_case = struct TestDU, %{case: {Rty, 1, :ok}}
@@ -223,7 +223,7 @@ defmodule DiscUnionTest do
   test "discriminated union's named constructors should not be created when `named_constructors` is false" do
     assert_raise UndefinedFunctionError, fn ->
       Code.eval_quoted(quote do
-                        require TestDUdc
+                        use TestDUdc
                         TestDUdc.a
       end)
     end
@@ -232,25 +232,25 @@ defmodule DiscUnionTest do
   test "discriminated union's `from` constructor rises at compile-time for invalid cases" do
     assert_raise UndefinedUnionCaseError, "undefined union case: Qqq", fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         TestDU.from Qqq
       end)
     end
     assert_raise UndefinedUnionCaseError, "undefined union case: Qqq in _", fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         TestDU.from {Qqq, 123}
       end)
     end
     assert_raise UndefinedUnionCaseError, "undefined union case: :qqq", fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         TestDUa.from :qqq
       end)
     end
     assert_raise UndefinedUnionCaseError, "undefined union case: :qqq in _", fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         TestDUa.from {:qqq, 123}
       end)
     end
@@ -258,13 +258,13 @@ defmodule DiscUnionTest do
 
   test "discriminated union's `from!` constructor rises at run-time for invalid cases" do
     assert_raise UndefinedUnionCaseError, fn ->
-      require TestDU
+      use TestDU
       TestDU.from! Qqq
     end
     assert TestDU.from!(Qqq, :no_such_case) == :no_such_case
 
     assert_raise UndefinedUnionCaseError, fn ->
-      require TestDUa
+      use TestDUa
       TestDUa.from! :qqq
     end
     assert TestDUa.from!(:qqq, :no_such_case) == :no_such_case
@@ -273,25 +273,25 @@ defmodule DiscUnionTest do
   test "discriminated union's `c` constructor rises at compile-time for invalid cases" do
     assert_raise UndefinedUnionCaseError, "undefined union case: Qqq", fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         TestDU.c Qqq
       end)
     end
     assert_raise UndefinedUnionCaseError, "undefined union case: Qqq in _", fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         TestDU.c Qqq, 123
       end)
     end
     assert_raise UndefinedUnionCaseError, "undefined union case: :qqq", fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         TestDUa.c :qqq
       end)
     end
     assert_raise UndefinedUnionCaseError, "undefined union case: :qqq in _", fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         TestDUa.c :qqq, 123
       end)
     end
@@ -300,25 +300,25 @@ defmodule DiscUnionTest do
   test "discriminated union's `c!` constructor rises at compile-time for invalid cases" do
     assert_raise UndefinedUnionCaseError, "undefined union case: Qqq", fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         TestDU.c! Qqq
       end)
     end
     assert_raise UndefinedUnionCaseError, "undefined union case: Qqq in _", fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         TestDU.c! Qqq, 123
       end)
     end
     assert_raise UndefinedUnionCaseError, "undefined union case: :qqq", fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         TestDUa.c! :qqq
       end)
     end
     assert_raise UndefinedUnionCaseError, "undefined union case: :qqq in _", fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         TestDUa.c! :qqq, 123
       end)
     end
@@ -326,7 +326,7 @@ defmodule DiscUnionTest do
 
   test "discriminated union's `case` macro should riase when condition is not evaluated to this discriminated union" do
     assert_raise BadStructError, "expected a struct named TestDU, got: nil", fn ->
-      require TestDU
+      use TestDU
       TestDU.case nil do
                Asd -> :asd
                Qwe in _ -> :qwe
@@ -334,7 +334,7 @@ defmodule DiscUnionTest do
              end
     end
     assert_raise BadStructError, "expected a struct named TestDUa, got: nil", fn ->
-      require TestDUa
+      use TestDUa
       TestDUa.case nil do
                :asd -> :asd
                :qwe in _ -> :qwe
@@ -344,7 +344,7 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union's `case` macro accepts the `in` format for case arguments" do
-    require TestDU
+    use TestDU
 
     x=TestDU.from Asd
     res=TestDU.case x do
@@ -371,7 +371,7 @@ defmodule DiscUnionTest do
     assert res == :rty
 
     # tests for pure atoms
-    require TestDUa
+    use TestDUa
 
     x=TestDUa.from :asd
     res=TestDUa.case x do
@@ -400,7 +400,7 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union's `case` macro accepts the tuple format for case arguments" do
-    require TestDU
+    use TestDU
 
     x=TestDU.from Asd
     res=TestDU.case x do
@@ -427,7 +427,7 @@ defmodule DiscUnionTest do
     assert res == :rty
 
     # tests for pure atoms
-    require TestDUa
+    use TestDUa
 
     x=TestDUa.from :asd
     res=TestDUa.case x do
@@ -455,7 +455,7 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the `in` format for case arguments" do
-    require TestDU
+    use TestDU
 
     c=Asd
     x=TestDU.from! c
@@ -485,7 +485,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     # tests for pure atoms
-    require TestDUa
+    use TestDUa
 
     c=:asd
     x=TestDUa.from! c
@@ -516,7 +516,7 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the tuple format for case arguments" do
-    require TestDU
+    use TestDU
 
     c=Asd
     x=TestDU.from! c
@@ -546,7 +546,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     # tests for pure atoms
-    require TestDUa
+    use TestDUa
 
     c=:asd
     x=TestDUa.from! c
@@ -577,7 +577,7 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union's `case` macro accepts the `in` format for case arguments with guard present" do
-    require TestDU
+    use TestDU
 
     x=TestDU.from Asd
     res=TestDU.case x do
@@ -604,7 +604,7 @@ defmodule DiscUnionTest do
     assert res == :rty
 
     # tests for pure atoms
-    require TestDUa
+    use TestDUa
 
     x=TestDUa.from :asd
     res=TestDUa.case x do
@@ -632,7 +632,7 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union's `case` macro accepts the tuple format for case arguments with guard present" do
-    require TestDU
+    use TestDU
 
     x=TestDU.from Asd
     res=TestDU.case x do
@@ -659,7 +659,7 @@ defmodule DiscUnionTest do
     assert res == :rty
 
     # tests for pure atoms
-    require TestDUa
+    use TestDUa
 
     x=TestDUa.from :asd
     res=TestDUa.case x do
@@ -687,7 +687,7 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the `in` format for case arguments with guard present" do
-    require TestDU
+    use TestDU
 
     c=Asd
     x=TestDU.from! c
@@ -717,7 +717,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     # tests for pure atoms
-    require TestDUa
+    use TestDUa
 
     c=:asd
     x=TestDUa.from! c
@@ -748,7 +748,7 @@ defmodule DiscUnionTest do
   end
 
   test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the tuple format for case arguments with guard present" do
-    require TestDU
+    use TestDU
 
     c=Asd
     x=TestDU.from! c
@@ -778,7 +778,7 @@ defmodule DiscUnionTest do
     assert res == c
 
     # tests for pure atoms
-    require TestDUa
+    use TestDUa
 
     c=:asd
     x=TestDUa.from! c
@@ -811,7 +811,7 @@ defmodule DiscUnionTest do
   test "discriminated union's `case` macro should riase on unknow tags and cases" do
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         x=struct TestDU, case: Qqq
                         TestDU.case x do
                                  Qwe -> :ok
@@ -821,7 +821,7 @@ defmodule DiscUnionTest do
 
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         x=struct TestDUa, case: :qqq
                         TestDUa.case x do
                                  :qwe -> :ok
@@ -830,7 +830,7 @@ defmodule DiscUnionTest do
     end
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         x=struct TestDU, case: Qqq
                         TestDU.case x do
                                  Wat -> :ok
@@ -840,7 +840,7 @@ defmodule DiscUnionTest do
 
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         x=struct TestDUa, case: :qqq
                         TestDUa.case x do
                                  :wat -> :ok
@@ -852,7 +852,7 @@ defmodule DiscUnionTest do
   test "discriminated union's `case` macro should riase on unknow tags and cases even whet `allow_underscore` is true" do
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         x=struct TestDU, case: Qqq
                         TestDU.case x, allow_underscore: true do
                                  Qwe -> :ok
@@ -862,7 +862,7 @@ defmodule DiscUnionTest do
 
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         x=struct TestDUa, case: :qqq
                         TestDUa.case x, allow_underscore: true do
                                  :qwe -> :ok
@@ -871,7 +871,7 @@ defmodule DiscUnionTest do
     end
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         x=struct TestDU, case: Qqq
                         TestDU.case x, allow_underscore: true do
                                  Wat -> :ok
@@ -881,7 +881,7 @@ defmodule DiscUnionTest do
 
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         x=struct TestDUa, case: :qqq
                         TestDUa.case x, allow_underscore: true do
                                  :wat -> :ok
@@ -896,7 +896,7 @@ defmodule DiscUnionTest do
 
     assert_raise MissingUnionCaseError, testdu_msg, fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         x=struct TestDU, case: Asd
                         TestDU.case x do
                                  Asd -> :asd
@@ -906,7 +906,7 @@ defmodule DiscUnionTest do
     end
     assert_raise MissingUnionCaseError, testdu_msg, fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         x=struct TestDU, case: Asd
                         TestDU.case x do
                                  Asd -> :asd
@@ -918,7 +918,7 @@ defmodule DiscUnionTest do
     end
     assert_raise MissingUnionCaseError, testdua_msg, fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         x=struct TestDUa, case: :asd
                         TestDUa.case x do
                                  :asd -> :asd
@@ -928,7 +928,7 @@ defmodule DiscUnionTest do
     end
     assert_raise MissingUnionCaseError, testdua_msg, fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         x=struct TestDUa, case: :asd
                         TestDUa.case x do
                                  :asd -> :asd
@@ -946,7 +946,7 @@ defmodule DiscUnionTest do
 
     assert_raise MissingUnionCaseError, testdu_msg, fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         x=struct TestDU, case: Asd
                         TestDU.case x, allow_underscore: true do
                                  Asd -> :asd
@@ -956,7 +956,7 @@ defmodule DiscUnionTest do
     end
     assert_raise MissingUnionCaseError, testdu_msg, fn ->
       Code.eval_quoted(quote do
-                        require TestDU
+                        use TestDU
                         x=struct TestDU, case: Asd
                         TestDU.case x, allow_underscore: true do
                                  Asd -> :asd
@@ -968,7 +968,7 @@ defmodule DiscUnionTest do
     end
     assert_raise MissingUnionCaseError, testdua_msg, fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         x=struct TestDUa, case: :asd
                         TestDUa.case x, allow_underscore: true do
                                  :asd -> :asd
@@ -978,7 +978,7 @@ defmodule DiscUnionTest do
     end
     assert_raise MissingUnionCaseError, testdua_msg, fn ->
       Code.eval_quoted(quote do
-                        require TestDUa
+                        use TestDUa
                         x=struct TestDUa, case: :asd
                         TestDUa.case x, allow_underscore: true do
                                  :asd -> :asd

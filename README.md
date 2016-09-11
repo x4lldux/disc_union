@@ -114,7 +114,7 @@ defmodule Result do
 end
 
 defmodule Test do
-  require Result
+  use Result
 
   def run(file) do
     res = Result.from! File.open(file)
@@ -135,7 +135,7 @@ It is possible to place discriminated union's constructor macros in function def
 
 ``` elixir
 defmodule ShapeArea do
-  require Shape
+  use   Shape
 
   def calc_area(Shape.c(Point)), do: 0
   def calc_area(Shape.circle(r)), do: :math.pi*r*r  # assuming named construcors are enabled
