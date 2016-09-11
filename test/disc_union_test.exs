@@ -1,17 +1,17 @@
 defmodule TestDU do
-  use DiscUnion
+  use DiscUnion, named_constructors: true
   defunion Asd
   | Qwe in any
   | Rty in integer * atom
 end
 defmodule TestDUa do
-  use DiscUnion
+  use DiscUnion, named_constructors: true
   defunion :asd
   | :qwe in any
   | :rty in integer * atom
 end
 defmodule TestDUdc do
-  use DiscUnion, dyn_constructors: false
+  use DiscUnion, named_constructors: false
 
   defunion A | B | C
 end
@@ -199,7 +199,7 @@ defmodule DiscUnionTest do
     assert TestDUa.c!(:rty, 1, :ok) == rty_case
   end
 
-  test "discriminated union can be constructed via dynamic constructors that construct at compile-time from valid cases" do
+  test "discriminated union can be constructed via named constructors that construct at compile-time from valid cases" do
     require TestDU
     require TestDUa
 
@@ -220,7 +220,7 @@ defmodule DiscUnionTest do
     assert TestDUa.rty(1, :ok) == TestDUa.from!({:rty, 1, :ok})
   end
 
-  test "discriminated union's dynamic constructors should not be created when `dyn_constructors` is false" do
+  test "discriminated union's named constructors should not be created when `named_constructors` is false" do
     assert_raise UndefinedFunctionError, fn ->
       Code.eval_quoted(quote do
                         require TestDUdc
