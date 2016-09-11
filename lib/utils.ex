@@ -133,6 +133,8 @@ defmodule DiscUnion.Utils do
     |> Enum.reduce(fn e, acc ->
         quote do unquote(e) | unquote(acc) end
     end)
-    quote do @type union_cases :: unquote(specs) end
+    quote do
+      @type t() :: %__MODULE__{case: unquote(specs)}
+    end
   end
 end

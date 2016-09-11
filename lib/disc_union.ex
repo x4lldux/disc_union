@@ -174,7 +174,6 @@ defmodule DiscUnion do
       all_cases = unquote(cases)
       @enforce_keys [:case]
 
-      @type t :: %__MODULE__{case: union_cases}
       defstruct case: []
 
       defimpl Inspect do
@@ -205,7 +204,7 @@ defmodule DiscUnion do
                  do_case expr, [], do: block
                end
 
-      @spec do_case(Macro.t, Keyword.t, [do: DiscUnion.case_clauses]) :: Macro.t
+      @spec do_case(Macro.t, Keyword.t, [do: Macro.t]) :: Macro.t
       defp do_case(expr, opts, do: block) do
         opts = opts ++ [allow_underscore: false]
         mod = __MODULE__
