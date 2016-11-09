@@ -5,6 +5,9 @@ defmodule DiscUnion.Utils.Case do
   @type case_clauses :: [case_clause]
 
   @spec transform_case_clauses(case_clauses, term, boolean) :: case_clauses
+  def transform_case_clauses(nil, all_union_cases, _allow_underscore) do # when `:do` is empty
+    DiscUnion.Utils.Case.raise_missing_union_case all_union_cases
+  end
   def transform_case_clauses(clauses, all_union_cases, allow_underscore) do
     underscore_canonical_case = Macro.var(:_, nil) |> DiscUnion.Utils.canonical_form_of_union_case
     underscore_semicanonical_case = cond do
