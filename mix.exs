@@ -10,11 +10,12 @@ defmodule DiscUnion.Mixfile do
       package: package,
       compilers: compilers,
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: ["coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test],
+      preferred_cli_env: ["coveralls": :test, "coveralls.html": :test, "coveralls.detail": :test, "coveralls.post": :test],
       consolidate_protocols: Mix.env != :test,
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps,
+      elixirc_paths: elixirc_paths(Mix.env),\
       docs: docs
     ]
   end
@@ -54,6 +55,9 @@ defmodule DiscUnion.Mixfile do
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/X4lldux/disc_union"} ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp docs do
     [extras: ["README.md": [title: "README"]]]
