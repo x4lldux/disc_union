@@ -99,7 +99,7 @@ defmodule DiscUnion.Utils.Constructors do
             {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: case_tag]}]}
           end
 
-          @spec c!(unquote_splicing(case_params_spec_ast)) :: %__MODULE__{case: {unquote_splicing(case_params_spec_ast)}}
+          @spec c!(unquote_splicing(case_params_spec_ast)) :: %__MODULE__{case: (unquote_splicing(case_params_spec_ast))}
           def c!(unquote(case_tag) = case_tag) do
               %__MODULE__{case: case_tag}
           end
