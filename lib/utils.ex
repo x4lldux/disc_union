@@ -79,18 +79,17 @@ defmodule DiscUnion.Utils do
   @spec is_unique?([Macro.expr]) :: boolean
   def is_unique?(cases) do
     unique_cases = cases
-    |> Enum.map(
-                fn
-                  {:__aliases__, _, [x|_]} when is_atom x                                    -> x
-                  {:{}, _, [{:__aliases__, _, [x|_]}|_]} when is_atom x                      -> x
-                  {:{}, _, [x|_]} when is_atom x                                             -> x
-                  {{:__aliases__, _, [x|_]}, _} when is_tuple(x) and x |> elem(0) |> is_atom -> x |> elem(0)
-                  {x, _} when is_atom x                                                      -> x # not really needed,
-                    # after transormation of cases, 2-tuples are converted in to n-tuples with two elemtns (in AST terms)
-                    # it's here just for symmetry with `is_only_atoms?/1`, which needs it, cause it's used in one other
-                    # place also.
-                  x when is_atom x                                                           -> x
-                end)
+    |> Enum.map(fn
+      {:__aliases__, _, [x|_]} when is_atom x                                  -> x
+      {:{}, _, [{:__aliases__, _, [x|_]}|_]} when is_atom x                    -> x
+      {:{}, _, [x|_]} when is_atom x                                           -> x
+      {{:__aliases__, _, [x|_]}, _} when is_tuple(x) and elem(x, 0) |> is_atom -> x |> elem(0)
+      {x, _} when is_atom x                                                    -> x # not really needed,
+      # after transormation of cases, 2-tuples are converted in to n-tuples with two elemtns (in AST terms)
+      # it's here just for symmetry with `is_only_atoms?/1`, which needs it, cause it's used in one other
+      # place also.
+      x when is_atom x                                                          -> x
+    end)
     |> Enum.uniq
 
     length(cases) == length(unique_cases)

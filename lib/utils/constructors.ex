@@ -22,8 +22,9 @@ defmodule DiscUnion.Utils.Constructors do
 
           @spec from!(unquote(case_tuple_spec_ast)) :: %__MODULE__{case: unquote(case_tuple_spec_ast)}
           @doc """
-          Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union. This works at run-time, to
-          have a compile-time guarantees, use `#{mod}.from/1` macro.
+          Constructs a valid case for `#{DiscUnion.Utils.module_name mod}`
+          discriminated union. This works at run-time, to have a compile-time
+          guarantees, use `#{mod}.from/1` macro.
           When an undefined union case is supplied it will raise an error at run-time.
           """
           def from!(case_tuple=unquote(case_tuple_match_ast) ) do
@@ -31,8 +32,9 @@ defmodule DiscUnion.Utils.Constructors do
           end
           @spec from!(unquote(case_tuple_spec_ast), any) :: %__MODULE__{case: unquote(case_tuple_spec_ast)}
           @doc """
-          Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union. This works at run-time, to
-          have a compile-time guarantees, use `#{DiscUnion.Utils.module_name mod}.from/1` macro.
+          Constructs a valid case for `#{DiscUnion.Utils.module_name mod}`
+          discriminated union. This works at run-time, to have a compile-time
+          guarantees, use `#{DiscUnion.Utils.module_name mod}.from/1` macro.
           When an undefined union case is supplied it will return second argument.
           """
           def from!(case_tuple=unquote(case_tuple_match_ast), _) do
@@ -83,7 +85,8 @@ defmodule DiscUnion.Utils.Constructors do
         case_params_spec_ast = DiscUnion.Utils.Constructors.case_spec_ast_params_list variant_case
         {variant_case, case_tag, case_tag_match_ast, case_params_spec_ast, case_tag_str, count}
       end)
-      |> Enum.map(fn           # HACK: too many quotes and unquotes. only solutions I came up with to combine quoted and
+      |> Enum.map(fn           # HACK: too many quotes and unquotes. only
+                               # solutions I came up with to combine quoted and
                                # unquoted expression
         # {variant_case, case_tag, case_tag_match_ast, case_tag_str, 0} ->
         {variant_case, case_tag, case_tag_match_ast, case_params_spec_ast, case_tag_str, 0} ->
@@ -105,10 +108,6 @@ defmodule DiscUnion.Utils.Constructors do
         {_variant_case, case_tag, case_tag_match_ast, case_params_spec_ast, case_tag_str, count} ->
           args = 1..count |> Enum.map(&(Macro.var("v#{&1}" |> String.to_atom, nil)))
 
-          # @doc """
-          # Constructs a valid `#{case_tag_str}` case for `#{DiscUnion.Utils.module_name mod}` discriminated union.
-          # Works at compile-time and will raise an error when unknown union case is used.
-          # """
           defmacro c(unquote(case_tag_match_ast), unquote_splicing(args)) do
             tuple = {:{}, [], [unquote(case_tag) | unquote(args)]}
             {:%, [], [{:__aliases__, [alias: false], [__MODULE__]}, {:%{}, [], [case: tuple]}]}
@@ -126,21 +125,38 @@ defmodule DiscUnion.Utils.Constructors do
       |> Enum.group_by(&elem(&1, 4))
       |> Enum.map(fn
         {0, _} ->
+          @doc """
+          Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union.
+          Works at compile-time and will raise an error when unknown union case is used.
+          """
           defmacro c(case_tag) do
             DiscUnion.Utils.Case.raise_undefined_union_case case_tag, at: :compiletime
           end
 
+          @doc """
+          Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union.
+          Works at runtime-time and will raise an error when unknown union case is used.
+          """
           def c!(case_tag) do
             DiscUnion.Utils.Case.raise_undefined_union_case case_tag, at: :compiletime
           end
 
         {count, _} ->
           args = 1..count |> Enum.map(&(Macro.var("v#{&1}" |> String.to_atom, nil)))
+
+          @doc """
+          Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union.
+          Works at compile-time and will raise an error when unknown union case is used.
+          """
           defmacro c(case_tag, unquote_splicing(args)) do
             case_tuple = {:{}, [], [case_tag | unquote(args)]}
             DiscUnion.Utils.Case.raise_undefined_union_case case_tuple, at: :compiletime
           end
 
+          @doc """
+          Constructs a valid case for `#{DiscUnion.Utils.module_name mod}` discriminated union.
+          Works at runtime-time and will raise an error when unknown union case is used.
+          """
           def c!(case_tag, unquote_splicing(args)) do
             case_tuple = {:{}, [], [case_tag | unquote(args)]}
             DiscUnion.Utils.Case.raise_undefined_union_case case_tuple, at: :compiletime
