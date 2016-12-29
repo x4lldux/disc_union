@@ -123,20 +123,21 @@ defmodule DiscUnion.Utils.Case do
       exception ->
         stacktrace = System.stacktrace
         if Exception.message(exception) == "oops" do
-
-          stacktrace = case when? do
-            :runtime     ->
-              stacktrace |> Enum.drop(2)
-            :compiletime ->
-              stacktrace
-              |> Enum.drop_while(
+          stacktrace =
+            case when? do
+              :runtime     ->
+                stacktrace |> Enum.drop(2)
+              :compiletime ->
+                stacktrace
+                |> Enum.drop_while(
                 fn {_, _, _, o} ->
-                  Keyword.get(o, :file)
-                  |> to_string
-                  |> String.contains?(__ENV__.file |> Path.basename)
+                  file = Keyword.get(o, :file) |> to_string
+                  String.contains?(file, __ENV__.file |> Path.basename)
+                  or
+                  String.contains?(file, "enum.ex") # HACK: ugggh! Somebody please suggest a better way
                 end)
-              |> Enum.drop(1)
-          end
+                |> Enum.drop(1)
+            end
 
           {_, union_args_count, str_form} = c |> DiscUnion.Utils.canonical_form_of_union_case
           union_tag = case str_form do
