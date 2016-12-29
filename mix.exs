@@ -6,7 +6,7 @@ defmodule DiscUnion.Mixfile do
       app: :disc_union,
       version: "0.1.1",
       elixir: "~> 1.2",
-      description: "Discriminated unions for Elixir",
+      description: "Discriminated unions for Elixir - for building algebraic data types",
       package: package,
       compilers: compilers,
       test_coverage: [tool: ExCoveralls],

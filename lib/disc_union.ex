@@ -1,6 +1,6 @@
 defmodule DiscUnion do
   @moduledoc """
-  Discriminated unions for Elixir (ADT - algebraic data types).
+  Discriminated unions for Elixir - for building algebraic data types.
 
   Allows for building data structure with a closed set of representations/cases as
   an alternative for a set of tuple+atom combo. Elixir already had product type -
@@ -57,9 +57,9 @@ defmodule DiscUnion do
         :error in _reason                     -> :ney
       end
     end
-    end
+  end
   ```
-  Since cases are just a tuples, they can be used also used as a clause for `case`
+  Since cases are just a tuples, they can be also used as a clause for `case`
   macro. Matching and gaurds also works!
   """
 
@@ -114,9 +114,8 @@ defmodule DiscUnion do
    * `from/1` macro, accepts a tuple (compile-time checking),
    * `from!/` or `from!/2` functions, accepts a tuple (only run-time checking).
    * a dynamically built macro (aka "named constructors") named after union tag
-     (in a camelized form, i.e. `Score`'s `Advantage` case, in tennis kata
-     example, would be available as `Score.advantage/2` macro and also with
-     compile-time checking),
+     (in a camelized form, i.e. `Point`'s `Rectangle` case, would be available as
+     `Point.rectangle/2` macro and also with compile-time checking),
 
   Preferred way to construct a variant case is via `c` macros or `c!`
   functions. `from/1` and `from!/1` construcotrs are mainly to be used when
@@ -125,9 +124,9 @@ defmodule DiscUnion do
   `use DiscUnion, named_constructors: true`.
 
 
-  If `Score.from {Pointz, 1, 2}` or `Score.c Pointz, 1, 2` be placed somwhere in
-  `run_test_match/0` function, in tennis kata example, compiler would throw this
-  error:
+  If `Score.from {Pointz, 1, 2}` or `Score.c Pointz, 1, 2`, from tennis kata
+  example, be placed somewhere in `run_test_match/0` function compiler would throw
+  this error:
 
   ``` elixir
   == Compilation error on file example/tennis_kata.exs ==
