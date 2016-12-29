@@ -184,7 +184,7 @@ as:
   1. Add disc_union to your list of dependencies in `mix.exs`:
 
         def deps do
-          [{:disc_union, "~> 0.1.1"}]
+          [{:disc_union, "~> 0.2.0"}]
         end
 
   2. Ensure disc_union is started before your application:

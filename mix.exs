@@ -4,7 +4,7 @@ defmodule DiscUnion.Mixfile do
   def project do
     [
       app: :disc_union,
-      version: "0.1.1",
+      version: "0.2.0",
       elixir: "~> 1.2",
       description: "Discriminated unions for Elixir - for building algebraic data types",
       package: package,
