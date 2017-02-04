@@ -42,14 +42,14 @@ end
 ```
 
 Type specs in `Circle` or `Rectangle` definitions are only for description and
-have no influance on code nor are they used for any type checking - there is no
+have no influence on code nor are they used for any type checking - there is no
 typchecking other then checking if correct cases were used!
 
 When constructing a case (an union tag), you have couple of options:
 
- * `c` macro, where arrity depends on number of arguments you set for
+ * `c` macro, where arity depends on number of arguments you set for
    cases (compile-time checking),
- * `c!` function, where arrity depends on number of arguments you set for
+ * `c!` function, where arity depends on number of arguments you set for
    cases (run-time checking),
  * `from/1` macro, accepts a tuple (compile-time checking),
  * `from!/` or `from!/2` functions, accepts a tuple (only run-time checking).
