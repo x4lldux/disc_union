@@ -7,16 +7,17 @@ defmodule DiscUnion.Mixfile do
       version: "0.2.0",
       elixir: "~> 1.2",
       description: "Discriminated unions for Elixir - for building algebraic data types",
-      package: package,
-      compilers: compilers,
+      package: package(),
+      compilers: compilers(),
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: ["coveralls": :test, "coveralls.html": :test, "coveralls.detail": :test, "coveralls.post": :test],
+      preferred_cli_env: [coveralls: :test, "coveralls.html": :test,
+                          "coveralls.detail": :test, "coveralls.post": :test],
       consolidate_protocols: Mix.env != :test,
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
-      deps: deps,
-      elixirc_paths: elixirc_paths(Mix.env),\
-      docs: docs
+      deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env),
+      docs: docs()
     ]
   end
 

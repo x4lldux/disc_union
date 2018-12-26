@@ -12,6 +12,7 @@ defmodule DiscUnion.Utils.Case do
     underscore_canonical_case = Macro.var(:_, nil) |> DiscUnion.Utils.canonical_form_of_union_case
     underscore_semicanonical_case = cond do
       {a, b, _} = underscore_canonical_case -> {a, b}
+      true -> raise "This should not happen - BUG"    # can't happen
     end
 
     all_union_cases = if allow_underscore == true do
@@ -35,7 +36,7 @@ defmodule DiscUnion.Utils.Case do
         {{:->, ctx, [ transformed_clause | clause_body]}, acc}
     end)
 
-    if (length all_union_cases) > (length acc) && not underscore_semicanonical_case in acc do
+    if (length all_union_cases) > (length acc) && not(underscore_semicanonical_case in acc) do
       DiscUnion.Utils.Case.raise_missing_union_case all_union_cases
     end
 
