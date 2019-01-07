@@ -1,7 +1,7 @@
 defmodule DiscUnion.Utils do
   @moduledoc false
 
-  @spec canonical_form_of_union_case(Macro.expr) :: {DiscUnion.canonical_union_tag, non_neg_integer, any}
+  @spec canonical_form_of_union_case(Macro.expr | {atom, any} | any) :: {DiscUnion.canonical_union_tag, non_neg_integer, any}
   def canonical_form_of_union_case(c) do
     case c do
       {:{}, _ctx, [union_tag | union_args]} ->
