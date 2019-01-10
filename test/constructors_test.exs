@@ -60,6 +60,44 @@ defmodule DiscUnionTest.Constructors do
     assert ExampleDUa.rty(1, :ok) == ExampleDUa.from!({:rty, 1, :ok})
   end
 
+  test "discriminated union can be constructed inside a match" do
+    assert {true, _} = Code.eval_quoted(quote do
+                                         use ExampleDU
+                                         x = ExampleDU.asd
+                                         match? ExampleDU.asd, x
+    end)
+
+    assert {true, _} = Code.eval_quoted(quote do
+                                         use ExampleDU
+                                         x = ExampleDU.qwe(1)
+                                         match? ExampleDU.qwe(_), x
+    end)
+
+    assert {true, _} = Code.eval_quoted(quote do
+                                         use ExampleDU
+                                         x = ExampleDU.rty(1, 2)
+                                         match? ExampleDU.rty(_, _), x
+    end)
+
+    assert {true, _} = Code.eval_quoted(quote do
+                                         use ExampleDU
+                                         x = ExampleDU.c(Asd)
+                                         match? ExampleDU.c(Asd), x
+    end)
+
+    assert {true, _} = Code.eval_quoted(quote do
+                                         use ExampleDU
+                                         x = ExampleDU.c(Qwe, 1)
+                                         match? ExampleDU.c(Qwe, _), x
+    end)
+
+    assert {true, _} = Code.eval_quoted(quote do
+                                         use ExampleDU
+                                         x = ExampleDU.c(Rty, 1, 2)
+                                         match? ExampleDU.c(Rty, _, _), x
+    end)
+  end
+
   test "discriminated union's named constructors should not be created when `named_constructors` is false" do
     assert_raise UndefinedFunctionError, fn ->
       Code.eval_quoted(quote do
