@@ -31,7 +31,7 @@ defmodule DiscUnion.Utils do
   def extract_union_case_definitions({:in, _, [left, right]}, acc) do
     vars = right |> unstar
 
-    [ {:{}, [], [left | vars]} | acc]
+    [{:{}, [], [left | vars]} | acc]
   end
   def extract_union_case_definitions({:|, _, [left, right]}, acc) do
     extract_union_case_definitions(right, extract_union_case_definitions(left, acc) )

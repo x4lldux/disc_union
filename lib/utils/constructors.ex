@@ -28,7 +28,7 @@ defmodule DiscUnion.Utils.Constructors do
         `#{mod}.from/1` macro.  When an undefined union case is supplied it will
         raise an error at run-time.
         """
-        def from!(case_tuple=unquote(case_tuple_match_ast) ) do
+        def from!(case_tuple = unquote(case_tuple_match_ast) ) do
           %__MODULE__{case: case_tuple}
         end
 
@@ -41,7 +41,7 @@ defmodule DiscUnion.Utils.Constructors do
         `#{Utils.module_name mod}.from/1` macro.  When an undefined union case
         is supplied it will return second argument.
         """
-        def from!(case_tuple=unquote(case_tuple_match_ast), _) do
+        def from!(case_tuple = unquote(case_tuple_match_ast), _) do
           %__MODULE__{case: case_tuple}
         end
 
@@ -61,8 +61,8 @@ defmodule DiscUnion.Utils.Constructors do
             end
 
           _ ->
-            args = for i<-1..count, do: Macro.var(:"v#{i}", nil)
-            defmacro from(case_tuple={:{}, _, [unquote(case_tag_match_ast) | args]})
+            args = for i <- 1..count, do: Macro.var(:"v#{i}", nil)
+            defmacro from(case_tuple = {:{}, _, [unquote(case_tag_match_ast) | args]})
             when length(args) == unquote(count) do
               case_clause = case_tuple
               mod = unquote(mod)
@@ -107,7 +107,7 @@ defmodule DiscUnion.Utils.Constructors do
         @spec c!(unquote_splicing(case_params_spec_ast)) :: %__MODULE__{
           case: (unquote_splicing(case_params_spec_ast))
         }
-        def c!(unquote(case_tag) = case_tag) do
+        def c!(case_tag = unquote(case_tag)) do
           %__MODULE__{case: case_tag}
         end
       end
@@ -115,7 +115,7 @@ defmodule DiscUnion.Utils.Constructors do
       for {variant_case, case_tag, case_tag_match_ast, case_tag_str, count} <- ext_cases,
       count > 0 do
         case_params_spec_ast = Constructors.case_spec_ast_params_list variant_case
-        args = for i<-1..count, do: Macro.var(:"v#{i}", nil)
+        args = for i <- 1..count, do: Macro.var(:"v#{i}", nil)
 
         defmacro c(unquote(case_tag_match_ast), unquote_splicing(args)) do
           case_tag = unquote(case_tag)
@@ -128,7 +128,7 @@ defmodule DiscUnion.Utils.Constructors do
         @spec c!(unquote_splicing(case_params_spec_ast)) :: %__MODULE__{
           case: {unquote_splicing(case_params_spec_ast)}
         }
-        def c!(unquote(case_tag) = case_tag, unquote_splicing(args))do
+        def c!(case_tag = unquote(case_tag), unquote_splicing(args)) do
           %__MODULE__{case: {case_tag, unquote_splicing(args)}}
         end
       end
@@ -156,7 +156,7 @@ defmodule DiscUnion.Utils.Constructors do
       end
 
       for {count, _} <- ext_cases_grouped_by_arity, count > 0 do
-        args = for i<-1..count, do: Macro.var(:"v#{i}", nil)
+        args = for i <- 1..count, do: Macro.var(:"v#{i}", nil)
 
         @doc """
         Constructs a valid case for `#{Utils.module_name mod}` discriminated
@@ -206,7 +206,7 @@ defmodule DiscUnion.Utils.Constructors do
 
         for {_variant_case, case_tag, _case_tag_match_ast, case_tag_str, count} <- ext_cases,
           count > 0 do
-          args = for i<-1..count, do: Macro.var(:"v#{i}", nil)
+          args = for i <- 1..count, do: Macro.var(:"v#{i}", nil)
           named_constructors_name = Constructors.named_constructors_name(case_tag)
 
           @doc """
@@ -297,7 +297,7 @@ defmodule DiscUnion.Utils.Constructors do
                             {variant_case, 0}
                           variant_case when is_tuple(variant_case)
                             and is_atom(elem variant_case, 0) ->
-                            {variant_case |> elem(0), tuple_size(variant_case)-1 }
+                            {variant_case |> elem(0), tuple_size(variant_case) - 1 }
                         end
     case_tag_str = case_tag |> Macro.to_string
     case_tag_match_ast = case case_tag |> to_string do

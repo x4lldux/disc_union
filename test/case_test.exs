@@ -23,24 +23,24 @@ defmodule DiscUnionTest.Case do
   test "discriminated union's `case` macro accepts the `in` format for case arguments" do
     use ExampleDU
 
-    x=ExampleDU.from Asd
-    res=ExampleDU.case x do
+    x = ExampleDU.from Asd
+    res = ExampleDU.case x do
                  Asd -> :asd
                  Qwe in _ -> :qwe
                  Rty in _, _ -> :rty
                end
     assert res == :asd
 
-    x=ExampleDU.from {Qwe, 1}
-    res=ExampleDU.case x do
+    x = ExampleDU.from {Qwe, 1}
+    res = ExampleDU.case x do
                  Asd -> :asd
                  Qwe in _ -> :qwe
                  Rty in _, _ -> :rty
                end
     assert res == :qwe
 
-    x=ExampleDU.from {Rty, 1, 1}
-    res=ExampleDU.case x do
+    x = ExampleDU.from {Rty, 1, 1}
+    res = ExampleDU.case x do
                  Asd -> :asd
                  Qwe in _ -> :qwe
                  Rty in _, _ -> :rty
@@ -50,24 +50,24 @@ defmodule DiscUnionTest.Case do
     # tests for pure atoms
     use ExampleDUa
 
-    x=ExampleDUa.from :asd
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from :asd
+    res = ExampleDUa.case x do
                  :asd -> :asd
                  :qwe in _ -> :qwe
                  :rty in _, _ -> :rty
                end
     assert res == :asd
 
-    x=ExampleDUa.from {:qwe, 1}
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from {:qwe, 1}
+    res = ExampleDUa.case x do
                  :asd -> :asd
                  :qwe in _ -> :qwe
                  :rty in _, _ -> :rty
                end
     assert res == :qwe
 
-    x=ExampleDUa.from {:rty, 1, 1}
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from {:rty, 1, 1}
+    res = ExampleDUa.case x do
                  :asd -> :asd
                  :qwe in _ -> :qwe
                  :rty in _, _ -> :rty
@@ -79,24 +79,24 @@ defmodule DiscUnionTest.Case do
   test "discriminated union's `case` macro accepts the tuple format for case arguments" do
     use ExampleDU
 
-    x=ExampleDU.from Asd
-    res=ExampleDU.case x do
+    x = ExampleDU.from Asd
+    res = ExampleDU.case x do
                  Asd -> :asd
                  {Qwe, _} -> :qwe
                  {Rty, _, _} -> :rty
                end
     assert res == :asd
 
-    x=ExampleDU.from {Qwe, 1}
-    res=ExampleDU.case x do
+    x = ExampleDU.from {Qwe, 1}
+    res = ExampleDU.case x do
                  Asd -> :asd
                  {Qwe, _} -> :qwe
                  {Rty, _, _} -> :rty
                end
     assert res == :qwe
 
-    x=ExampleDU.from {Rty, 1, 1}
-    res=ExampleDU.case x do
+    x = ExampleDU.from {Rty, 1, 1}
+    res = ExampleDU.case x do
                  Asd -> :asd
                  {Qwe, _} -> :qwe
                  {Rty, _, _} -> :rty
@@ -106,24 +106,24 @@ defmodule DiscUnionTest.Case do
     # tests for pure atoms
     use ExampleDUa
 
-    x=ExampleDUa.from :asd
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from :asd
+    res = ExampleDUa.case x do
                  :asd -> :asd
                  {:qwe, _} -> :qwe
                  {:rty, _, _} -> :rty
                end
     assert res == :asd
 
-    x=ExampleDUa.from {:qwe, 1}
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from {:qwe, 1}
+    res = ExampleDUa.case x do
                  :asd -> :asd
                  {:qwe, _} -> :qwe
                  {:rty, _, _} -> :rty
                end
     assert res == :qwe
 
-    x=ExampleDUa.from {:rty, 1, 1}
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from {:rty, 1, 1}
+    res = ExampleDUa.case x do
                  :asd -> :asd
                  {:qwe, _} -> :qwe
                  {:rty, _, _} -> :rty
@@ -134,60 +134,60 @@ defmodule DiscUnionTest.Case do
   test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the `in` format for case arguments" do
     use ExampleDU
 
-    c=Asd
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z=Qwe in _ -> z
-                 z=Rty in _, _ -> z
+    c = Asd
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = Qwe in _ -> z
+                 z = Rty in _, _ -> z
                end
     assert res == c
 
-    c={Qwe, 1}
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z=Qwe in _ -> z
-                 z=Rty in _, _ -> z
+    c = {Qwe, 1}
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = Qwe in _ -> z
+                 z = Rty in _, _ -> z
                end
     assert res == c
 
-    c={Rty, 1, 1}
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z=Qwe in _ -> z
-                 z=Rty in _, _ -> z
+    c = {Rty, 1, 1}
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = Qwe in _ -> z
+                 z = Rty in _, _ -> z
                end
     assert res == c
 
     # tests for pure atoms
     use ExampleDUa
 
-    c=:asd
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z=:qwe in _ -> z
-                 z=:rty in _, _ -> z
+    c = :asd
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = :qwe in _ -> z
+                 z = :rty in _, _ -> z
                end
     assert res == c
 
-    c={:qwe, 1}
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z=:qwe in _ -> z
-                 z=:rty in _, _ -> z
+    c = {:qwe, 1}
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = :qwe in _ -> z
+                 z = :rty in _, _ -> z
                end
     assert res == c
 
-    c={:rty, 1, 1}
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z=:qwe in _ -> z
-                 z=:rty in _, _ -> z
+    c = {:rty, 1, 1}
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = :qwe in _ -> z
+                 z = :rty in _, _ -> z
                end
     assert res == c
   end
@@ -195,60 +195,60 @@ defmodule DiscUnionTest.Case do
   test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the tuple format for case arguments" do
     use ExampleDU
 
-    c=Asd
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z={Qwe, _} -> z
-                 z={Rty, _, _} -> z
+    c = Asd
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = {Qwe, _} -> z
+                 z = {Rty, _, _} -> z
                end
     assert res == c
 
-    c={Qwe, 1}
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z={Qwe, _} -> z
-                 z={Rty, _, _} -> z
+    c = {Qwe, 1}
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = {Qwe, _} -> z
+                 z = {Rty, _, _} -> z
                end
     assert res == c
 
-    c={Rty, 1, 1}
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z={Qwe, _} -> z
-                 z={Rty, _, _} -> z
+    c = {Rty, 1, 1}
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = {Qwe, _} -> z
+                 z = {Rty, _, _} -> z
                end
     assert res == c
 
     # tests for pure atoms
     use ExampleDUa
 
-    c=:asd
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z={:qwe, _} -> z
-                 z={:rty, _, _} -> z
+    c = :asd
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = {:qwe, _} -> z
+                 z = {:rty, _, _} -> z
                end
     assert res == c
 
-    c={:qwe, 1}
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z={:qwe, _} -> z
-                 z={:rty, _, _} -> z
+    c = {:qwe, 1}
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = {:qwe, _} -> z
+                 z = {:rty, _, _} -> z
                end
     assert res == c
 
-    c={:rty, 1, 1}
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z={:qwe, _} -> z
-                 z={:rty, _, _} -> z
+    c = {:rty, 1, 1}
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = {:qwe, _} -> z
+                 z = {:rty, _, _} -> z
                end
     assert res == c
   end
@@ -256,54 +256,54 @@ defmodule DiscUnionTest.Case do
   test "discriminated union's `case` macro accepts the `in` format for case arguments with guard present" do
     use ExampleDU
 
-    x=ExampleDU.from Asd
-    res=ExampleDU.case x do
+    x = ExampleDU.from Asd
+    res = ExampleDU.case x do
                  Asd -> :asd
-                 Qwe in x when x>0 -> :qwe
-                 Rty in x, _ when x>0 -> :rty
+                 Qwe in x when x > 0 -> :qwe
+                 Rty in x, _ when x > 0 -> :rty
                end
     assert res == :asd
 
-    x=ExampleDU.from {Qwe, 1}
-    res=ExampleDU.case x do
+    x = ExampleDU.from {Qwe, 1}
+    res = ExampleDU.case x do
                  Asd -> :asd
-                 Qwe in x when x>0 -> :qwe
-                 Rty in x, _ when x>0 -> :rty
+                 Qwe in x when x > 0 -> :qwe
+                 Rty in x, _ when x > 0 -> :rty
                end
     assert res == :qwe
 
-    x=ExampleDU.from {Rty, 1, 1}
-    res=ExampleDU.case x do
+    x = ExampleDU.from {Rty, 1, 1}
+    res = ExampleDU.case x do
                  Asd -> :asd
-                 Qwe in x when x>0 -> :qwe
-                 Rty in x, _ when x>0 -> :rty
+                 Qwe in x when x > 0 -> :qwe
+                 Rty in x, _ when x > 0 -> :rty
                end
     assert res == :rty
 
     # tests for pure atoms
     use ExampleDUa
 
-    x=ExampleDUa.from :asd
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from :asd
+    res = ExampleDUa.case x do
                  :asd -> :asd
-                 :qwe in x when x>0 -> :qwe
-                 :rty in x, _ when x>0 -> :rty
+                 :qwe in x when x > 0 -> :qwe
+                 :rty in x, _ when x > 0 -> :rty
                end
     assert res == :asd
 
-    x=ExampleDUa.from {:qwe, 1}
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from {:qwe, 1}
+    res = ExampleDUa.case x do
                  :asd -> :asd
-                 :qwe in x when x>0 -> :qwe
-                 :rty in x, _ when x>0 -> :rty
+                 :qwe in x when x > 0 -> :qwe
+                 :rty in x, _ when x > 0 -> :rty
                end
     assert res == :qwe
 
-    x=ExampleDUa.from {:rty, 1, 1}
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from {:rty, 1, 1}
+    res = ExampleDUa.case x do
                  :asd -> :asd
-                 :qwe in x when x>0 -> :qwe
-                 :rty in x, _ when x>0 -> :rty
+                 :qwe in x when x > 0 -> :qwe
+                 :rty in x, _ when x > 0 -> :rty
                end
     assert res == :rty
   end
@@ -311,54 +311,54 @@ defmodule DiscUnionTest.Case do
   test "discriminated union's `case` macro accepts the tuple format for case arguments with guard present" do
     use ExampleDU
 
-    x=ExampleDU.from Asd
-    res=ExampleDU.case x do
+    x = ExampleDU.from Asd
+    res = ExampleDU.case x do
                  Asd -> :asd
-                 {Qwe, x} when x>0 -> :qwe
-                 {Rty, x, _} when x>0 -> :rty
+                 {Qwe, x} when x > 0 -> :qwe
+                 {Rty, x, _} when x > 0 -> :rty
                end
     assert res == :asd
 
-    x=ExampleDU.from {Qwe, 1}
-    res=ExampleDU.case x do
+    x = ExampleDU.from {Qwe, 1}
+    res = ExampleDU.case x do
                  Asd -> :asd
-                 {Qwe, x} when x>0 -> :qwe
-                 {Rty, x, _} when x>0 -> :rty
+                 {Qwe, x} when x > 0 -> :qwe
+                 {Rty, x, _} when x > 0 -> :rty
                end
     assert res == :qwe
 
-    x=ExampleDU.from {Rty, 1, 1}
-    res=ExampleDU.case x do
+    x = ExampleDU.from {Rty, 1, 1}
+    res = ExampleDU.case x do
                  Asd -> :asd
-                 {Qwe, x} when x>0 -> :qwe
-                 {Rty, x, _} when x>0 -> :rty
+                 {Qwe, x} when x > 0 -> :qwe
+                 {Rty, x, _} when x > 0 -> :rty
                end
     assert res == :rty
 
     # tests for pure atoms
     use ExampleDUa
 
-    x=ExampleDUa.from :asd
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from :asd
+    res = ExampleDUa.case x do
                  :asd -> :asd
-                 {:qwe, x} when x>0 -> :qwe
-                 {:rty, x, _} when x>0 -> :rty
+                 {:qwe, x} when x > 0 -> :qwe
+                 {:rty, x, _} when x > 0 -> :rty
                end
     assert res == :asd
 
-    x=ExampleDUa.from {:qwe, 1}
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from {:qwe, 1}
+    res = ExampleDUa.case x do
                  :asd -> :asd
-                 {:qwe, x} when x>0 -> :qwe
-                 {:rty, x, _} when x>0 -> :rty
+                 {:qwe, x} when x > 0 -> :qwe
+                 {:rty, x, _} when x > 0 -> :rty
                end
     assert res == :qwe
 
-    x=ExampleDUa.from {:rty, 1, 1}
-    res=ExampleDUa.case x do
+    x = ExampleDUa.from {:rty, 1, 1}
+    res = ExampleDUa.case x do
                  :asd -> :asd
-                 {:qwe, x} when x>0 -> :qwe
-                 {:rty, x, _} when x>0 -> :rty
+                 {:qwe, x} when x > 0 -> :qwe
+                 {:rty, x, _} when x > 0 -> :rty
                end
     assert res == :rty
   end
@@ -366,60 +366,60 @@ defmodule DiscUnionTest.Case do
   test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the `in` format for case arguments with guard present" do
     use ExampleDU
 
-    c=Asd
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z=Qwe in x when x>0 -> z
-                 z=Rty in x, _ when x>0 -> z
+    c = Asd
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = Qwe in x when x > 0 -> z
+                 z = Rty in x, _ when x > 0 -> z
                end
     assert res == c
 
-    c={Qwe, 1}
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z=Qwe in x when x>0 -> z
-                 z=Rty in x, _ when x>0 -> z
+    c = {Qwe, 1}
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = Qwe in x when x > 0 -> z
+                 z = Rty in x, _ when x > 0 -> z
                end
     assert res == c
 
-    c={Rty, 1, 1}
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z=Qwe in x when x>0 -> z
-                 z=Rty in x, _ when x>0 -> z
+    c = {Rty, 1, 1}
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = Qwe in x when x > 0 -> z
+                 z = Rty in x, _ when x > 0 -> z
                end
     assert res == c
 
     # tests for pure atoms
     use ExampleDUa
 
-    c=:asd
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z=:qwe in x when x>0 -> z
-                 z=:rty in x, _ when x>0 -> z
+    c = :asd
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = :qwe in x when x > 0 -> z
+                 z = :rty in x, _ when x > 0 -> z
                end
     assert res == c
 
-    c={:qwe, 1}
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z=:qwe in x when x>0 -> z
-                 z=:rty in x, _ when x>0 -> z
+    c = {:qwe, 1}
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = :qwe in x when x > 0 -> z
+                 z = :rty in x, _ when x > 0 -> z
                end
     assert res == c
 
-    c={:rty, 1, 1}
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z=:qwe in x when x>0 -> z
-                 z=:rty in x, _ when x>0 -> z
+    c = {:rty, 1, 1}
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = :qwe in x when x > 0 -> z
+                 z = :rty in x, _ when x > 0 -> z
                end
     assert res == c
   end
@@ -427,60 +427,60 @@ defmodule DiscUnionTest.Case do
   test "discriminated union's `case` macro cases can have a pattern match for whole case expression in the tuple format for case arguments with guard present" do
     use ExampleDU
 
-    c=Asd
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z={Qwe, x} when x>0 -> z
-                 z={Rty, x, _} when x>0 -> z
+    c = Asd
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = {Qwe, x} when x > 0 -> z
+                 z = {Rty, x, _} when x > 0 -> z
                end
     assert res == c
 
-    c={Qwe, 1}
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z={Qwe, x} when x>0 -> z
-                 z={Rty, x, _}when x>0  -> z
+    c = {Qwe, 1}
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = {Qwe, x} when x > 0 -> z
+                 z = {Rty, x, _}when x > 0  -> z
                end
     assert res == c
 
-    c={Rty, 1, 1}
-    x=ExampleDU.from! c
-    res=ExampleDU.case x do
-                 z=Asd -> z
-                 z={Qwe, x} when x>0 -> z
-                 z={Rty, x, _} when x>0 -> z
+    c = {Rty, 1, 1}
+    x = ExampleDU.from! c
+    res = ExampleDU.case x do
+                 z = Asd -> z
+                 z = {Qwe, x} when x > 0 -> z
+                 z = {Rty, x, _} when x > 0 -> z
                end
     assert res == c
 
     # tests for pure atoms
     use ExampleDUa
 
-    c=:asd
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z={:qwe, x} when x>0 -> z
-                 z={:rty, x, _} when x>0 -> z
+    c = :asd
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = {:qwe, x} when x > 0 -> z
+                 z = {:rty, x, _} when x > 0 -> z
                end
     assert res == c
 
-    c={:qwe, 1}
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z={:qwe, x} when x>0 -> z
-                 z={:rty, x, _}when x>0  -> z
+    c = {:qwe, 1}
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = {:qwe, x} when x > 0 -> z
+                 z = {:rty, x, _}when x > 0  -> z
                end
     assert res == c
 
-    c={:rty, 1, 1}
-    x=ExampleDUa.from! c
-    res=ExampleDUa.case x do
-                 z=:asd -> z
-                 z={:qwe, x} when x>0 -> z
-                 z={:rty, x, _} when x>0 -> z
+    c = {:rty, 1, 1}
+    x = ExampleDUa.from! c
+    res = ExampleDUa.case x do
+                 z = :asd -> z
+                 z = {:qwe, x} when x > 0 -> z
+                 z = {:rty, x, _} when x > 0 -> z
                end
     assert res == c
   end
@@ -489,7 +489,7 @@ defmodule DiscUnionTest.Case do
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
                         use ExampleDU
-                        x=struct ExampleDU, case: Qqq
+                        x = struct ExampleDU, case: Qqq
                         ExampleDU.case x do
                                  Qwe -> :ok
                                end
@@ -499,7 +499,7 @@ defmodule DiscUnionTest.Case do
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
                         use ExampleDUa
-                        x=struct ExampleDUa, case: :qqq
+                        x = struct ExampleDUa, case: :qqq
                         ExampleDUa.case x do
                                  :qwe -> :ok
                                end
@@ -508,7 +508,7 @@ defmodule DiscUnionTest.Case do
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
                         use ExampleDU
-                        x=struct ExampleDU, case: Qqq
+                        x = struct ExampleDU, case: Qqq
                         ExampleDU.case x do
                                  Wat -> :ok
                                end
@@ -518,7 +518,7 @@ defmodule DiscUnionTest.Case do
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
                         use ExampleDUa
-                        x=struct ExampleDUa, case: :qqq
+                        x = struct ExampleDUa, case: :qqq
                         ExampleDUa.case x do
                                  :wat -> :ok
                                end
@@ -530,7 +530,7 @@ defmodule DiscUnionTest.Case do
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
                         use ExampleDU
-                        x=struct ExampleDU, case: Qqq
+                        x = struct ExampleDU, case: Qqq
                         ExampleDU.case x, allow_underscore: true do
                                  Qwe -> :ok
                                end
@@ -540,7 +540,7 @@ defmodule DiscUnionTest.Case do
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
                         use ExampleDUa
-                        x=struct ExampleDUa, case: :qqq
+                        x = struct ExampleDUa, case: :qqq
                         ExampleDUa.case x, allow_underscore: true do
                                  :qwe -> :ok
                                end
@@ -549,7 +549,7 @@ defmodule DiscUnionTest.Case do
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
                         use ExampleDU
-                        x=struct ExampleDU, case: Qqq
+                        x = struct ExampleDU, case: Qqq
                         ExampleDU.case x, allow_underscore: true do
                                  Wat -> :ok
                                end
@@ -559,7 +559,7 @@ defmodule DiscUnionTest.Case do
     assert_raise UndefinedUnionCaseError, fn ->
       Code.eval_quoted(quote do
                         use ExampleDUa
-                        x=struct ExampleDUa, case: :qqq
+                        x = struct ExampleDUa, case: :qqq
                         ExampleDUa.case x, allow_underscore: true do
                                  :wat -> :ok
                                end
@@ -574,7 +574,7 @@ defmodule DiscUnionTest.Case do
     assert_raise MissingUnionCaseError, testdu_msg, fn ->
       Code.eval_quoted(quote do
                         use ExampleDU
-                        x=struct ExampleDU, case: Asd
+                        x = struct ExampleDU, case: Asd
                         ExampleDU.case x do
                                  Asd -> :asd
                                  Qwe in _ -> :qwe
@@ -584,7 +584,7 @@ defmodule DiscUnionTest.Case do
     assert_raise MissingUnionCaseError, testdu_msg, fn ->
       Code.eval_quoted(quote do
                         use ExampleDU
-                        x=struct ExampleDU, case: Asd
+                        x = struct ExampleDU, case: Asd
                         ExampleDU.case x do
                                  Asd -> :asd
                                  Qwe in 1 -> :qwe
@@ -596,7 +596,7 @@ defmodule DiscUnionTest.Case do
     assert_raise MissingUnionCaseError, testdua_msg, fn ->
       Code.eval_quoted(quote do
                         use ExampleDUa
-                        x=struct ExampleDUa, case: :asd
+                        x = struct ExampleDUa, case: :asd
                         ExampleDUa.case x do
                                  :asd -> :asd
                                  :qwe in _ -> :qwe
@@ -606,11 +606,11 @@ defmodule DiscUnionTest.Case do
     assert_raise MissingUnionCaseError, testdua_msg, fn ->
       Code.eval_quoted(quote do
                         use ExampleDUa
-                        x=struct ExampleDUa, case: :asd
+                        x = struct ExampleDUa, case: :asd
                         ExampleDUa.case x do
                                  :asd -> :asd
                                  :qwe in 1 -> :qwe
-                                 :qwe in x when x >2 -> :qwe
+                                 :qwe in x when x > 2 -> :qwe
                                  :qwe in _ -> :qwe
                                end
       end)
@@ -624,7 +624,7 @@ defmodule DiscUnionTest.Case do
     assert_raise MissingUnionCaseError, testdu_msg, fn ->
       Code.eval_quoted(quote do
                         use ExampleDU
-                        x=struct ExampleDU, case: Asd
+                        x = struct ExampleDU, case: Asd
                         ExampleDU.case x, allow_underscore: true do
                                  Asd -> :asd
                                  Qwe in _ -> :qwe
@@ -634,7 +634,7 @@ defmodule DiscUnionTest.Case do
     assert_raise MissingUnionCaseError, testdu_msg, fn ->
       Code.eval_quoted(quote do
                         use ExampleDU
-                        x=struct ExampleDU, case: Asd
+                        x = struct ExampleDU, case: Asd
                         ExampleDU.case x, allow_underscore: true do
                                  Asd -> :asd
                                  Qwe in 1 -> :qwe
@@ -646,7 +646,7 @@ defmodule DiscUnionTest.Case do
     assert_raise MissingUnionCaseError, testdua_msg, fn ->
       Code.eval_quoted(quote do
                         use ExampleDUa
-                        x=struct ExampleDUa, case: :asd
+                        x = struct ExampleDUa, case: :asd
                         ExampleDUa.case x, allow_underscore: true do
                                  :asd -> :asd
                                  :qwe in _ -> :qwe
@@ -656,11 +656,11 @@ defmodule DiscUnionTest.Case do
     assert_raise MissingUnionCaseError, testdua_msg, fn ->
       Code.eval_quoted(quote do
                         use ExampleDUa
-                        x=struct ExampleDUa, case: :asd
+                        x = struct ExampleDUa, case: :asd
                         ExampleDUa.case x, allow_underscore: true do
                                  :asd -> :asd
                                  :qwe in 1 -> :qwe
-                                 :qwe in x when x >2 -> :qwe
+                                 :qwe in x when x > 2 -> :qwe
                                  :qwe in _ -> :qwe
                                end
       end)

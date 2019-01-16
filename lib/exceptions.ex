@@ -1,7 +1,7 @@
 defmodule UndefinedUnionCaseError do
   defexception [case: nil, case_args_count: 0, line: 0]
 
-  def message(exception=%{case_args_count: 0}) do
+  def message(exception = %{case_args_count: 0}) do
     "undefined union case: #{exception.case}"
   end
   def message(exception) do

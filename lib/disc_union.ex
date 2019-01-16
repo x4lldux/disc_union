@@ -195,7 +195,7 @@ defmodule DiscUnion do
         import Inspect.Algebra
 
         def inspect(union, opts) do
-          mod=@for |> Module.split
+          mod = @for |> Module.split
           concat ["##{mod}<", Inspect.inspect(union.case, opts), ">"]
         end
       end

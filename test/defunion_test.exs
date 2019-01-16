@@ -83,7 +83,7 @@ defmodule DiscUnionTest.Defunion do
       Code.eval_quoted(quote do
                         defmodule TestUnion8 do
                           use DiscUnion
-                          defunion 1 | 2 in any*any
+                          defunion 1 | 2 in any * any
                         end
       end)
     end
@@ -128,7 +128,7 @@ defmodule DiscUnionTest.Defunion do
       Code.eval_quoted(quote do
                         defmodule TestUnion13 do
                           use DiscUnion
-                          defunion Asd | Asd in any*any
+                          defunion Asd | Asd in any * any
                         end
       end)
     end
@@ -136,7 +136,7 @@ defmodule DiscUnionTest.Defunion do
       Code.eval_quoted(quote do
                         defmodule TestUnion14 do
                           use DiscUnion
-                          defunion :asd | :asd in any*any
+                          defunion :asd | :asd in any * any
                         end
       end)
     end
