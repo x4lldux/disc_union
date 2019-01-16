@@ -28,21 +28,13 @@ defmodule DiscUnion.Mixfile do
     [applications: [:logger]]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:mydep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"}
-  #
-  # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:excoveralls, "~> 0.4", only: [:dev, :test]},
-      {:dialyxir, "~> 0.3.3", only: [:dev]},
-      {:ex_doc, "~> 0.11", only: [:dev]},
-      {:earmark, "~> 0.1", only: [:dev]},
+      {:excoveralls, "~> 0.4", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.21", only: [:dev], runtime: false},
+      {:earmark, "~> 1.4", only: [:dev], runtime: false},
+      {:credo, "~> 1.1", only: [:dev], runtime: false}
     ]
   end
 
