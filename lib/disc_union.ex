@@ -83,11 +83,11 @@ defmodule DiscUnion do
   Defines a discriminated union.
 
   To define a discriminated union, `defunion` macro is used. Use `|` to separate
-  union cases from each other. Union cases can have arguments and an asterisk `*`
-  can be used to combine several arguments. Underneath, it's just a struct with
-  union cases represented as atoms and tuples. Type specs in definitions are
-  passed to `@spec` declaration, so dialyzer can be used. However, DiscUnion does
-  not type-check anything by it self.
+  union cases from each other. Union cases can have arguments and an asterisk
+  `*` can be used to combine several arguments. Underneath, it's just a struct
+  with union cases represented as atoms and tuples. Type specs in definitions
+  are passed to `@spec` declaration, so dialyzer can be used. However, DiscUnion
+  does not type-check anything by it self.
 
   ### Usage
 
@@ -102,8 +102,8 @@ defmodule DiscUnion do
   ```
 
   Type specs in `Circle` or `Rectangle` definitions are only for description and
-  have no influence on code nor are they used for any type checking - there is no
-  typchecking other then checking if correct cases were used!
+  have no influence on code nor are they used for any type checking - there is
+  no typchecking other then checking if correct cases were used!
 
   When constructing a case (an union tag), you have couple of options:
 
@@ -114,8 +114,8 @@ defmodule DiscUnion do
    * `from/1` macro, accepts a tuple (compile-time checking),
    * `from!/` or `from!/2` functions, accepts a tuple (only run-time checking).
    * a dynamically built macro (aka "named constructors") named after union tag
-     (in a camelized form, i.e. `Point`'s `Rectangle` case, would be available as
-     `Point.rectangle/2` macro and also with compile-time checking),
+     (in a camelized form, i.e. `Point`'s `Rectangle` case, would be available
+     as `Point.rectangle/2` macro and also with compile-time checking),
 
   Preferred way to construct a variant case is via `c` macros or `c!`
   functions. `from/1` and `from!/1` construcotrs are mainly to be used when
@@ -125,8 +125,8 @@ defmodule DiscUnion do
 
 
   If `Score.from {Pointz, 1, 2}` or `Score.c Pointz, 1, 2`, from tennis kata
-  example, be placed somewhere in `run_test_match/0` function compiler would throw
-  this error:
+  example, be placed somewhere in `run_test_match/0` function compiler would
+  throw this error:
 
   ``` elixir
   == Compilation error on file example/tennis_kata.exs ==
@@ -135,15 +135,15 @@ defmodule DiscUnion do
       (disc_union) example/tennis_kata.exs:38: Tennis.run_test_match/0
   ```
 
-  If you would use `from!/1` or `c!`, this error would be thrown at run-time, or,
-  in the case of `from!/2`, not at all! Function `from!/2` returns it's second
-  argument when unknow clause is passed to the function.
+  If you would use `from!/1` or `c!`, this error would be thrown at run-time,
+  or, in the case of `from!/2`, not at all! Function `from!/2` returns it's
+  second argument when unknow clause is passed to the function.
 
 
   For each discriminated union, a special `case` macro is created. This macro
   checks if all cases were covered in it's clauses (at compile-time) and expects
-  it's predicate to be evaluated to this discriminated union's struct (checked at
-  run-time).
+  it's predicate to be evaluated to this discriminated union's struct (checked
+  at run-time).
 
   If `Game in _`, in `Tennis.score_point/2` functions, would be commented,
   compiler would throw this error:
@@ -212,8 +212,8 @@ defmodule DiscUnion do
       end
 
       @doc """
-      Matches the given expression against the given clauses. The expressions needs to be evaluate to
-      `%#{DiscUnion.Utils.module_name __MODULE__}{}`.
+      Matches the given expression against the given clauses. The expressions
+      needs to be evaluate to `%#{DiscUnion.Utils.module_name __MODULE__}{}`.
       """
       defmacro case(expr, do: block) do
                  do_case expr, [], do: block
@@ -230,9 +230,8 @@ defmodule DiscUnion do
         opts = opts ++ [allow_underscore: false]
         mod = __MODULE__
         allow_underscore = Keyword.get opts, :allow_underscore
-
-        block = block
-        |> DiscUnion.Utils.Case.transform_case_clauses(@cases_canonical, allow_underscore)
+        block = DiscUnion.Utils.Case.transform_case_clauses(block,
+          @cases_canonical, allow_underscore)
         quote location: :keep do
           precond = unquote expr
           mod = unquote mod
@@ -240,8 +239,8 @@ defmodule DiscUnion do
             raise BadStructError, struct: mod, term: precond
           end
           case precond.case do
-                         unquote(block)
-                       end
+            unquote(block)
+          end
         end
       end
 
