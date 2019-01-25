@@ -63,8 +63,6 @@ defmodule DiscUnion do
   macro. Matching and gaurds also works!
   """
 
-  @type canonical_union_tag :: {:_, 0} | {:__aliases__, atom} | atom
-
   defmacro __using__(opts) do
     opts = opts ++ [named_constructors: false]
     if true == Keyword.get opts, :named_constructors do
