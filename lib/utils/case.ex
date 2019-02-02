@@ -6,6 +6,70 @@ defmodule DiscUnion.Utils.Case do
   @type case_clause :: {:->, [{atom, any}], [any]}
   @type case_clauses :: [case_clause]
 
+  defmacro raise_undefined_union_case(c, at: :runtime) do
+    quote location: :keep, bind_quoted: [c: c] do
+      try do
+        raise "oops"
+      rescue
+        exception ->
+          stacktrace = System.stacktrace() |> Enum.drop(1)
+
+          {_, union_args_count, str_form} = c |> Utils.canonical_form_of_union_case
+          union_tag = case str_form do
+                        x when is_tuple(x) -> x |> elem(0)
+                        x  -> x
+                      end
+          reraise UndefinedUnionCaseError, [case: union_tag, case_args_count: union_args_count], stacktrace
+        end
+    end
+  end
+
+  defmacro raise_undefined_union_case(c, at: :compiletime) do
+    quote location: :keep, bind_quoted: [c: c] do
+      try do
+        raise "oops"
+      rescue
+        exception ->
+          stacktrace = Enum.drop_while(System.stacktrace(),
+            fn {_, _, _, o} ->
+              file = Keyword.get(o, :file) |> to_string
+              String.contains?(file, __ENV__.file |> Path.basename)
+              or
+              String.contains?(file, "enum.ex") # HACK: ugggh! Somebody please suggest a better way
+            end)
+            |> Enum.drop(1)
+
+          {_, union_args_count, str_form} = c |> Utils.canonical_form_of_union_case
+          union_tag = case str_form do
+                        x when is_tuple(x) -> x |> elem(0)
+                        x  -> x
+                      end
+          reraise UndefinedUnionCaseError, [case: union_tag, case_args_count: union_args_count], stacktrace
+        end
+    end
+  end
+
+
+  @spec raise_missing_union_case(case_clauses) :: no_return()
+  def raise_missing_union_case(all_cases) do
+    try do
+      raise "oops"
+    rescue
+      exception ->
+        stacktrace = System.stacktrace
+        if Exception.message(exception) == "oops" do
+          stacktrace = Enum.drop_while(stacktrace,
+            fn {_, _, _, o} ->
+              Keyword.get(o, :file)
+              |> to_string
+              |> String.contains?(__ENV__.file |> Path.basename)
+            end)
+          cases = all_cases |> Enum.map(&elem(&1, 2))
+          reraise MissingUnionCaseError, [cases: cases], stacktrace
+        end
+    end
+  end
+
   @spec transform_case_clauses(case_clauses | nil, term, boolean) :: case_clauses | no_return()
   # when `:do` is empty
   def transform_case_clauses(nil, all_union_cases, _allow_underscore) do
@@ -132,56 +196,4 @@ defmodule DiscUnion.Utils.Case do
     {new_elem, {f, f_acc}}
   end
 
-
-  def raise_undefined_union_case(c, at: when?) do
-    try do
-      raise "oops"
-    rescue
-      exception ->
-        stacktrace = System.stacktrace
-        if Exception.message(exception) == "oops" do
-          stacktrace =
-            case when? do
-              :runtime     ->
-                stacktrace |> Enum.drop(2)
-              :compiletime ->
-                Enum.drop_while(stacktrace,
-                  fn {_, _, _, o} ->
-                    file = Keyword.get(o, :file) |> to_string
-                    String.contains?(file, __ENV__.file |> Path.basename)
-                    or
-                    String.contains?(file, "enum.ex") # HACK: ugggh! Somebody please suggest a better way
-                  end)
-                |> Enum.drop(1)
-            end
-
-          {_, union_args_count, str_form} = c |> Utils.canonical_form_of_union_case
-          union_tag = case str_form do
-                        x when is_tuple(x) -> x |> elem(0)
-                        x  -> x
-                      end
-          reraise UndefinedUnionCaseError, [case: union_tag, case_args_count: union_args_count], stacktrace
-        end
-    end
-  end
-
-  @spec raise_missing_union_case(case_clauses) :: no_return()
-  def raise_missing_union_case(all_cases) do
-    try do
-      raise "oops"
-    rescue
-      exception ->
-        stacktrace = System.stacktrace
-        if Exception.message(exception) == "oops" do
-          stacktrace = Enum.drop_while(stacktrace,
-            fn {_, _, _, o} ->
-              Keyword.get(o, :file)
-              |> to_string
-              |> String.contains?(__ENV__.file |> Path.basename)
-            end)
-          cases = all_cases |> Enum.map(&elem(&1, 2))
-          reraise MissingUnionCaseError, [cases: cases], stacktrace
-        end
-    end
-  end
 end

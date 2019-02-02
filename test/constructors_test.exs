@@ -98,6 +98,28 @@ defmodule DiscUnionTest.Constructors do
     end)
   end
 
+  test "stacktrace in `from!` is starts with calling function and preserves location" do
+    ret = DiscUnionTest.StacktraceHelper.raise_on_from!
+    {ex, stacktrace, file, line} = ret
+
+    assert %UndefinedUnionCaseError{} = ex
+
+    file = file |> Path.relative_to_cwd |> to_charlist
+    loc = [file: file, line: line]
+    assert {DiscUnionTest.StacktraceHelper, :raise_on_from!, 0, ^loc} = hd(stacktrace)
+  end
+
+  test "stacktrace in `c!` is starts with calling function and preserves location" do
+    ret = DiscUnionTest.StacktraceHelper.raise_on_c!
+    {ex, stacktrace, file, line} = ret
+
+    assert %UndefinedUnionCaseError{} = ex
+
+    file = file |> Path.relative_to_cwd |> to_charlist
+    loc = [file: file, line: line]
+    assert {DiscUnionTest.StacktraceHelper, :raise_on_c!, 0, ^loc} = hd(stacktrace)
+  end
+
   test "discriminated union's named constructors should not be created when `named_constructors` is false" do
     assert_raise UndefinedFunctionError, fn ->
       Code.eval_quoted(quote do

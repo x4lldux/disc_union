@@ -1,6 +1,8 @@
 defmodule DiscUnion.Utils.Constructors do
   @moduledoc false
 
+  require DiscUnion.Utils.Case
+
   alias DiscUnion.Utils
   alias DiscUnion.Utils.{Constructors, Case}
 
@@ -73,8 +75,13 @@ defmodule DiscUnion.Utils.Constructors do
 
       # default fallbacks raising errors
       def from!(case_tuple, ret), do: ret
-      def from!(case_tuple) do
+      def from!(case_tuple) when is_tuple case_tuple do
+        ctl = Tuple.to_list case_tuple
+        case_tuple = quote do {unquote_splicing(ctl)} end
         Case.raise_undefined_union_case case_tuple, at: :runtime
+      end
+      def from!(case_tag) when is_atom case_tag do
+        Case.raise_undefined_union_case case_tag, at: :runtime
       end
 
       defmacro from(case_tag) do
@@ -151,7 +158,7 @@ defmodule DiscUnion.Utils.Constructors do
         case is used.
         """
         def c!(case_tag) do
-          Case.raise_undefined_union_case case_tag, at: :compiletime
+          Case.raise_undefined_union_case case_tag, at: :runtime
         end
       end
 
@@ -176,8 +183,8 @@ defmodule DiscUnion.Utils.Constructors do
         """
         def c!(case_tag, unquote_splicing(args)) do
           args = unquote(args)
-          case_tuple = quote do: {unquote(case_tag), unquote_splicing(args)}
-          Case.raise_undefined_union_case case_tuple, at: :compiletime
+          case_tuple = quote do {unquote(case_tag), unquote_splicing(args)} end
+          Case.raise_undefined_union_case case_tuple, at: :runtime
         end
       end
     end

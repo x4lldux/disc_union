@@ -71,6 +71,7 @@ defmodule DiscUnion do
 
     quote do
       require DiscUnion
+      require DiscUnion.Utils.Case
       require DiscUnion.Utils.Constructors
 
       import DiscUnion, only: [defunion: 1]
