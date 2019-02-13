@@ -115,7 +115,7 @@ defmodule DiscUnion.Utils.Constructors do
           case: (unquote_splicing(case_params_spec_ast))
         }
         def c!(case_tag = unquote(case_tag)) do
-          %__MODULE__{case: case_tag}
+          from!(case_tag)
         end
       end
 
@@ -136,7 +136,7 @@ defmodule DiscUnion.Utils.Constructors do
           case: {unquote_splicing(case_params_spec_ast)}
         }
         def c!(case_tag = unquote(case_tag), unquote_splicing(args)) do
-          %__MODULE__{case: {case_tag, unquote_splicing(args)}}
+          from!({case_tag, unquote_splicing(args)})
         end
       end
 
@@ -158,7 +158,7 @@ defmodule DiscUnion.Utils.Constructors do
         case is used.
         """
         def c!(case_tag) do
-          Case.raise_undefined_union_case case_tag, at: :runtime
+          from!(case_tag)
         end
       end
 
@@ -182,9 +182,8 @@ defmodule DiscUnion.Utils.Constructors do
         case is used.
         """
         def c!(case_tag, unquote_splicing(args)) do
-          args = unquote(args)
-          case_tuple = quote do {unquote(case_tag), unquote_splicing(args)} end
-          Case.raise_undefined_union_case case_tuple, at: :runtime
+          # let from! do the fallback
+          from!({case_tag, unquote_splicing(args)})
         end
       end
     end
