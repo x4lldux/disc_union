@@ -186,6 +186,8 @@ defmodule DiscUnion.Utils.Constructors do
           from!({case_tag, unquote_splicing(args)})
         end
       end
+
+      defoverridable [from!: 1, from!: 2]
     end
   end
 
