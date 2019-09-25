@@ -53,6 +53,9 @@ defmodule DiscUnion.Mixfile do
   defp elixirc_paths(_), do: ["lib"]
 
   defp docs do
-    [extras: ["README.md": [title: "README"]]]
+    [extras: [
+        "README.md": [title: "README"],
+        "CHANGELOG.md": [title: "Changelog"]
+      ]]
   end
 end
