@@ -1,4 +1,4 @@
-# Example is uses both `c` and named constructors. But because named constructors
+# Example uses both `c` and named constructors. But because named constructors
 # are camelized, they may sometimes be less readable than `c` constructors
 
 defmodule Player do
@@ -50,14 +50,22 @@ defmodule Tennis do
   def score_point(%Score{}=score, %Player{}=point_player) do
     IO.puts "Point for player #{inspect point_player} @ #{inspect score}"
     Score.case score do
-      Advantage in ^point_player                                  -> Score.c Game, point_player
-      Advantage in _                                              -> Score.c Deuce
-      Deuce                                                       -> Score.c Advantage, point_player
-      Points in PlayerPoints.forty, _ when point_player==Player.a -> Score.c Game, Player.a
-      Points in _, PlayerPoints.forty when point_player==Player.b -> Score.c Game, Player.b
-      Points in a, b when point_player==Player.a                  -> Score.c(Points, next_point_score(a), b) |> normalize_score
-      Points in a, b when point_player==Player.b                  -> Score.c(Points, a, next_point_score(b)) |> normalize_score
-      Game in _                                                   -> IO.puts "Game is over #{inspect score}"
+      Advantage in ^point_player ->
+        Score.c Game, point_player
+      Advantage in _ ->
+        Score.c Deuce
+      Deuce ->
+        Score.c Advantage, point_player
+      Points in PlayerPoints.forty, _ when point_player==Player.a ->
+        Score.c Game, Player.a
+      Points in _, PlayerPoints.forty when point_player==Player.b ->
+        Score.c Game, Player.b
+      Points in a, b when point_player==Player.a ->
+        Score.c(Points, next_point_score(a), b) |> normalize_score
+      Points in a, b when point_player==Player.b ->
+        Score.c(Points, a, next_point_score(b)) |> normalize_score
+      Game in _ ->
+        IO.puts "Game is over #{inspect score}"
     end
   end
 
@@ -74,16 +82,25 @@ defmodule Tennis do
     |> Tennis.score_point2(Player.a)
   end
 
-  # NOTE: Works too, but nothing ensures you covered all possible cases for Score type! So don't use this way of
-  # building logic too often, or unicorns will cry ;)
-  def score_point2(Score.c(Advantage, point_player), point_player),           do: Score.c Game, point_player
-  def score_point2(Score.c(Advantage, _), _point_player),                     do: Score.c Deuce
-  def score_point2(Score.c(Deuce),  point_player),                            do: Score.c Advantage, point_player
-  def score_point2(Score.c(Points, PlayerPoints.c(Forty), _), _point_player), do: Score.c Game, Player.a
-  def score_point2(Score.c(Points, _, PlayerPoints.c(Forty)), _point_player), do: Score.c Game, Player.b
-  def score_point2(Score.c(Points, a, b), Player.a),                          do: Score.c(Points, next_point_score(a), b) |> normalize_score
-  def score_point2(Score.c(Points, a, b), Player.b),                          do: Score.c(Points, a, next_point_score(b)) |> normalize_score
-  def score_point2(score=Score.c(Game, _), _point_player),                    do: IO.puts "Game is over #{inspect score}"
+  # NOTE: Works too, but nothing ensures you covered all possible cases for
+  # Score type! So don't use this way of building logic too often, or unicorns
+  # will cry ;)
+  def score_point2(Score.c(Advantage, point_player), point_player),
+    do: Score.c Game, point_player
+  def score_point2(Score.c(Advantage, _), _point_player),
+    do: Score.c Deuce
+  def score_point2(Score.c(Deuce),  point_player),
+    do: Score.c Advantage, point_player
+  def score_point2(Score.c(Points, PlayerPoints.c(Forty), _), _point_player),
+    do: Score.c Game, Player.a
+  def score_point2(Score.c(Points, _, PlayerPoints.c(Forty)), _point_player),
+    do: Score.c Game, Player.b
+  def score_point2(Score.c(Points, a, b), Player.a),
+    do: Score.c(Points, next_point_score(a), b) |> normalize_score
+  def score_point2(Score.c(Points, a, b), Player.b),
+    do: Score.c(Points, a, next_point_score(b)) |> normalize_score
+  def score_point2(score=Score.c(Game, _), _point_player),
+    do: IO.puts "Game is over #{inspect score}"
 
 
   defp next_point_score(%PlayerPoints{}=point) do
