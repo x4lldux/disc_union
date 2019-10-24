@@ -57,12 +57,16 @@ When constructing a case (an union tag), you have couple of options:
    (in a camelized form, i.e. `Point`'s `Rectangle` case, would be available as
    `Point.rectangle/2` macro and also with compile-time checking),
 
+Run-time constructors `from!` can be overridden. Any changes in functionality
+introduced to them will also impact `c!` constructors which are based on
+`from!`. This, for example, allows for defining variant cases with some run-time
+validations.
+
 Preferred way to construct a variant case is via `c` macros or `c!`
 functions. `from/1` and `from!/1` construcotrs are mainly to be used when
 interacting with return values like in example with opening a file. If you'd
 like to enable named constructors do:
 `use DiscUnion, named_constructors: true`.
-
 
 If `Score.from {Pointz, 1, 2}` or `Score.c Pointz, 1, 2`, from tennis kata
 example, be placed somewhere in `run_test_match/0` function compiler would throw
