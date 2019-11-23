@@ -4,7 +4,7 @@ defmodule DiscUnion.Mixfile do
   def project do
     [
       app: :disc_union,
-      version: "0.2.0",
+      version: "0.3.0",
       elixir: "~> 1.2",
       description: "Discriminated unions for Elixir - for building algebraic data types",
       package: package(),
@@ -46,7 +46,7 @@ defmodule DiscUnion.Mixfile do
   defp package do
     [ maintainers: ["X4lldux"],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/X4lldux/disc_union"} ]
+      links: %{"GitHub" => "https://github.com/x4lldux/disc_union"},  ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test"]

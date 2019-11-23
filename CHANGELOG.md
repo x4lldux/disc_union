@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.3.0-dev
+## v0.3.0
 
   * Update to Elixir 1.7+
   * Exception raised by run-time constructors contain correct case name & count
